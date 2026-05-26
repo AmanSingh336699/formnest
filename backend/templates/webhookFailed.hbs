@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Webhook failing</title></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px; color: #111;">
+  <h1 style="font-size: 22px;">Hi {{name}},</h1>
+  <p>Your webhook at <code>{{webhookUrl}}</code> has failed {{failureCount}} times in a row.</p>
+  <p>If failures reach 20 consecutive attempts, we'll auto-disable this webhook to protect your account.</p>
+  <p>Please check that your endpoint is healthy and returning a 2xx status code.</p>
+</body>
+</html>
