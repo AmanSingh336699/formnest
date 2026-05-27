@@ -16,6 +16,7 @@ export const apiKeysController = {
     try {
       const user = requireUser(req);
       const items = await apiKeysService.list(user);
+      res.setHeader('Cache-Control', 'no-store');
       success(res, items);
     } catch (err) {
       next(err);
@@ -30,6 +31,7 @@ export const apiKeysController = {
         ip: req.ip ?? null,
         ua: req.headers['user-agent'] ?? null,
       });
+      res.setHeader('Cache-Control', 'no-store');
       created(res, key);
     } catch (err) {
       next(err);
@@ -57,6 +59,7 @@ export const apiKeysController = {
       const id = req.params.id;
       if (!id) throw new ValidationError();
       const rawKey = await apiKeysService.reveal(user, id);
+      res.setHeader('Cache-Control', 'no-store');
       success(res, { rawKey });
     } catch (err) {
       next(err);

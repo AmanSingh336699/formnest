@@ -4,7 +4,7 @@ import { Topbar } from './Topbar';
 
 export function DashboardShell(): JSX.Element {
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
+    <div className="flex h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar />

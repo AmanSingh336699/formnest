@@ -12,15 +12,12 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>((set) => {
-  const savedTheme = localStorage.getItem('formnest-theme') as Theme | null;
+  const storedTheme = localStorage.getItem('formnest-theme');
+  const savedTheme: Theme | null = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : null;
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const initialTheme: Theme = savedTheme || (systemDark ? 'dark' : 'light');
 
-  if (initialTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+  applyTheme(initialTheme);
 
   return {
     sidebarCollapsed: false,
@@ -29,22 +26,19 @@ export const useUiStore = create<UiState>((set) => {
     setSidebar: (collapsed) => set({ sidebarCollapsed: collapsed }),
     setTheme: (theme) => {
       localStorage.setItem('formnest-theme', theme);
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      applyTheme(theme);
       set({ theme });
     },
     toggleTheme: () => set((s) => {
       const newTheme = s.theme === 'light' ? 'dark' : 'light';
       localStorage.setItem('formnest-theme', newTheme);
-      if (newTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      applyTheme(newTheme);
       return { theme: newTheme };
     }),
   };
 });
+
+function applyTheme(theme: Theme): void {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  document.documentElement.style.colorScheme = theme;
+}

@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 import { eq, and, isNull, gt } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { redis } from '../../config/redis';
+import { safeRedis, safeRedisWrite } from '../../lib/redisSafe';
 import { emailQueue } from '../../config/queue';
 import { env } from '../../config/env';
 import { logger } from '../../config/logger';
@@ -128,7 +129,7 @@ export const authService = {
     const email = params.email.toLowerCase().trim();
     const ipKey = `login:fail:${hashIp(params.ip ?? '')}:${crypto.createHash('sha256').update(email).digest('hex').slice(0, 16)}`;
 
-    const fails = Number((await redis.get(ipKey)) ?? '0');
+    const fails = Number((await safeRedis('login-fail:get', () => redis.get(ipKey))) ?? '0');
     if (fails >= LOGIN_FAILURE_LOCK.maxAttempts) {
       throw new UnauthorizedError('Too many failed attempts. Try again later.', 'RATE_LIMIT_EXCEEDED');
     }
@@ -141,8 +142,8 @@ export const authService = {
     const passwordOk = await verifyPassword(params.password, hashToCompare);
 
     if (!user || !passwordOk) {
-      await redis.incr(ipKey);
-      await redis.expire(ipKey, LOGIN_FAILURE_LOCK.windowSec);
+      await safeRedisWrite('login-fail:incr', () => redis.incr(ipKey));
+      await safeRedisWrite('login-fail:expire', () => redis.expire(ipKey, LOGIN_FAILURE_LOCK.windowSec));
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
@@ -150,7 +151,7 @@ export const authService = {
       throw new ForbiddenError('This account has been suspended', 'ACCOUNT_SUSPENDED');
     }
 
-    await redis.del(ipKey);
+    await safeRedisWrite('login-fail:del', () => redis.del(ipKey));
 
     await db
       .update(users)

@@ -75,9 +75,9 @@ export function createApp(): Application {
   app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
   app.get('/health/ready', async (_req, res) => {
     const [db, redis] = await Promise.all([checkDatabaseHealth(), checkRedisHealth()]);
-    const ready = db && redis;
+    const ready = db;
     res.status(ready ? 200 : 503).json({
-      status: ready ? 'ok' : 'degraded',
+      status: ready && redis ? 'ok' : ready ? 'degraded' : 'down',
       checks: { db, redis },
       timestamp: new Date().toISOString(),
     });

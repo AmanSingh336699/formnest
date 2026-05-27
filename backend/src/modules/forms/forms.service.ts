@@ -13,6 +13,7 @@ import { PLAN_LIMITS, TOKEN_TTL } from '../../lib/constants';
 import type { CreateFormBody, UpdateFormBody } from './forms.validators';
 import type { AuthenticatedUser } from '../../middleware/auth.middleware';
 import { logger } from '../../config/logger';
+import { safeRedis, safeRedisWrite } from '../../lib/redisSafe';
 
 function generateSlug(): string {
   // 8-char URL-safe slug; collision-resistant per cuid2
@@ -26,7 +27,7 @@ function cacheKeyForSlug(slug: string): string {
 async function invalidateFormCache(slug: string, customSlug?: string | null): Promise<void> {
   const keys = [cacheKeyForSlug(slug)];
   if (customSlug) keys.push(cacheKeyForSlug(customSlug));
-  await redis.del(...keys).catch(() => undefined);
+  await safeRedisWrite('form-cache:del', () => redis.del(...keys));
 }
 
 export const formsService = {
@@ -373,7 +374,7 @@ export const formsService = {
 
   async getPublicBySlug(slug: string): Promise<(Form & { fields: FormField[] }) | null> {
     const cacheKey = cacheKeyForSlug(slug);
-    const cached = await redis.get(cacheKey).catch(() => null);
+    const cached = await safeRedis('form-cache:get', () => redis.get(cacheKey));
     if (cached) {
       try {
         return JSON.parse(cached) as Form & { fields: FormField[] };
@@ -399,9 +400,9 @@ export const formsService = {
 
     // Only cache PUBLISHED forms
     if (form.status === 'PUBLISHED') {
-      await redis
-        .set(cacheKey, JSON.stringify(result), 'EX', TOKEN_TTL.EDGE_CACHE_SEC)
-        .catch(() => undefined);
+      await safeRedisWrite('form-cache:set', () =>
+        redis.set(cacheKey, JSON.stringify(result), 'EX', TOKEN_TTL.EDGE_CACHE_SEC),
+      );
     }
 
     return result;

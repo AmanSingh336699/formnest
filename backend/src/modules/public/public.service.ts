@@ -25,6 +25,7 @@ import { SUBMIT_GUARDS, PLAN_LIMITS } from '../../lib/constants';
 import { sanitizePlainText } from '../../lib/sanitize';
 import { formsService } from '../forms/forms.service';
 import parsePhoneNumber from 'libphonenumber-js';
+import { safeRedis, safeRedisResult, safeRedisWrite } from '../../lib/redisSafe';
 
 interface SubmitContext {
   ip: string | null;
@@ -154,8 +155,10 @@ export const publicService = {
   async trackView(formId: string, ip: string | null): Promise<void> {
     const ipHash = hashIp(ip ?? '');
     const debounceKey = `view:debounce:${formId}:${ipHash}`;
-    const fresh = await redis.set(debounceKey, '1', 'EX', SUBMIT_GUARDS.viewDebounceSec, 'NX');
-    if (!fresh) return; // already counted this IP recently
+    const fresh = await safeRedisResult('view:debounce:set', () =>
+      redis.set(debounceKey, '1', 'EX', SUBMIT_GUARDS.viewDebounceSec, 'NX'),
+    );
+    if (fresh.ok && !fresh.value) return; // already counted this IP recently
 
     // Increment in DB (atomic). Cheap because PK lookup.
     await db
@@ -166,15 +169,17 @@ export const publicService = {
 
     // Track per-day for analytics chart
     const dayKey = `analytics:${formId}:${new Date().toISOString().slice(0, 10)}:views`;
-    await redis.incr(dayKey).catch(() => undefined);
-    await redis.expire(dayKey, 8 * 24 * 60 * 60).catch(() => undefined);
+    await safeRedisWrite('analytics:views:incr', () => redis.incr(dayKey));
+    await safeRedisWrite('analytics:views:expire', () => redis.expire(dayKey, 8 * 24 * 60 * 60));
   },
 
   async trackStart(formId: string, ip: string | null): Promise<void> {
     const ipHash = hashIp(ip ?? '');
     const debounceKey = `start:debounce:${formId}:${ipHash}`;
-    const fresh = await redis.set(debounceKey, '1', 'EX', SUBMIT_GUARDS.viewDebounceSec, 'NX');
-    if (!fresh) return;
+    const fresh = await safeRedisResult('start:debounce:set', () =>
+      redis.set(debounceKey, '1', 'EX', SUBMIT_GUARDS.viewDebounceSec, 'NX'),
+    );
+    if (fresh.ok && !fresh.value) return;
 
     await db
       .update(forms)
@@ -205,8 +210,8 @@ export const publicService = {
 
     // 3. Plan-level monthly quota
     const quotaKey = getMonthlyResponseKey(form.userId);
-    const currentMonthly = Number((await redis.get(quotaKey)) ?? '0');
     const plan = await this.getOwnerPlan(form.userId);
+    const currentMonthly = await this.getMonthlyResponseCount(form.userId, quotaKey);
     const monthlyLimit = PLAN_LIMITS[plan].maxResponsesPerMonth;
     if (currentMonthly >= monthlyLimit) {
       throw new ForbiddenError(
@@ -305,39 +310,43 @@ export const publicService = {
 
     // Update monthly counter (best effort)
     if (!isSpam) {
-      await redis.incr(quotaKey).catch(() => undefined);
-      await redis.expire(quotaKey, 35 * 24 * 60 * 60).catch(() => undefined);
+      await safeRedisWrite('quota:responses:incr', () => redis.incr(quotaKey));
+      await safeRedisWrite('quota:responses:expire', () => redis.expire(quotaKey, 35 * 24 * 60 * 60));
 
       const dayKey = `analytics:${form.id}:${new Date().toISOString().slice(0, 10)}:completions`;
-      await redis.incr(dayKey).catch(() => undefined);
-      await redis.expire(dayKey, 8 * 24 * 60 * 60).catch(() => undefined);
+      await safeRedisWrite('analytics:completions:incr', () => redis.incr(dayKey));
+      await safeRedisWrite('analytics:completions:expire', () => redis.expire(dayKey, 8 * 24 * 60 * 60));
     }
 
     // Enqueue webhook jobs (outside transaction)
     for (const d of result.queuedDeliveries) {
-      await webhookQueue.add('deliver', {
-        deliveryId: d.deliveryId,
-        webhookId: d.webhookId,
-        responseId: result.response.id,
-        eventType: 'response.created',
-        payload: { ref: d.deliveryId },
-        attempt: 1,
-      });
+      await webhookQueue
+        .add('deliver', {
+          deliveryId: d.deliveryId,
+          webhookId: d.webhookId,
+          responseId: result.response.id,
+          eventType: 'response.created',
+          payload: { ref: d.deliveryId },
+          attempt: 1,
+        })
+        .catch((err: unknown) => logger.warn({ err, deliveryId: d.deliveryId }, 'Webhook queue unavailable'));
     }
 
     // Enqueue email notification if configured
     if (!isSpam && form.settings?.notifyOnResponse) {
       const emails = form.settings.notifyEmails ?? [];
       for (const to of emails) {
-        await emailQueue.add('response-received', {
-          to,
-          subject: `New response on "${form.title}"`,
-          template: 'responseReceived',
-          variables: {
-            formTitle: form.title,
-            responseLink: `${env.FRONTEND_URL}/dashboard/forms/${form.id}/responses/${result.response.id}`,
-          },
-        });
+        await emailQueue
+          .add('response-received', {
+            to,
+            subject: `New response on "${form.title}"`,
+            template: 'responseReceived',
+            variables: {
+              formTitle: form.title,
+              responseLink: `${env.FRONTEND_URL}/dashboard/forms/${form.id}/responses/${result.response.id}`,
+            },
+          })
+          .catch((err: unknown) => logger.warn({ err, formId: form.id, to }, 'Email queue unavailable'));
       }
     }
 
@@ -367,6 +376,28 @@ export const publicService = {
       .where(sql`id = ${userId}`)
       .limit(1);
     return row?.plan ?? 'FREE';
+  },
+
+  async getMonthlyResponseCount(userId: string, quotaKey: string): Promise<number> {
+    const cached = await safeRedis('quota:responses:get', () => redis.get(quotaKey));
+    if (cached !== null) {
+      const parsed = Number(cached);
+      if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+    }
+
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(responses)
+      .innerJoin(forms, eq(responses.formId, forms.id))
+      .where(and(eq(forms.userId, userId), eq(responses.isSpam, false), gte(responses.createdAt, monthStart)));
+
+    const count = row?.count ?? 0;
+    await safeRedisWrite('quota:responses:set', () =>
+      redis.set(quotaKey, String(count), 'EX', 35 * 24 * 60 * 60),
+    );
+    return count;
   },
 
   async validateAnswers(

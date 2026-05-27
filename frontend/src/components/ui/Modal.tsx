@@ -29,24 +29,25 @@ export function Modal({ open, onOpenChange, title, description, children, footer
           className={cn(
             'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
             'w-[calc(100vw-2rem)] rounded-xl bg-white shadow-2xl animate-slide-up',
+            'dark:border dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100',
             sizeClasses[size],
           )}
         >
-          <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
+          <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
             <div>
-              <Dialog.Title className="text-lg font-semibold text-gray-900">{title}</Dialog.Title>
+              <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-slate-100">{title}</Dialog.Title>
               {description ? (
-                <Dialog.Description className="mt-1 text-sm text-gray-500">{description}</Dialog.Description>
+                <Dialog.Description className="mt-1 text-sm text-gray-500 dark:text-slate-400">{description}</Dialog.Description>
               ) : (
                 <Dialog.Description className="sr-only">{title}</Dialog.Description>
               )}
             </div>
-            <Dialog.Close className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label="Close">
+            <Dialog.Close className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100" aria-label="Close">
               <X className="h-5 w-5" />
             </Dialog.Close>
           </div>
           <div className="px-6 py-4">{children}</div>
-          {footer && <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-6 py-4">{footer}</div>}
+          {footer && <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-6 py-4 dark:border-slate-800">{footer}</div>}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -14,8 +14,8 @@ export function Switch({ checked, onChange, label, description, disabled }: Swit
     <HSwitch.Group as="div" className="flex items-center justify-between gap-4">
       {(label || description) && (
         <span className="flex flex-grow flex-col">
-          {label && <HSwitch.Label as="span" className="text-sm font-medium text-gray-900">{label}</HSwitch.Label>}
-          {description && <HSwitch.Description as="span" className="text-xs text-gray-500">{description}</HSwitch.Description>}
+          {label && <HSwitch.Label as="span" className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</HSwitch.Label>}
+          {description && <HSwitch.Description as="span" className="text-xs text-gray-500 dark:text-slate-400">{description}</HSwitch.Description>}
         </span>
       )}
       <HSwitch
@@ -25,7 +25,7 @@ export function Switch({ checked, onChange, label, description, disabled }: Swit
         className={cn(
           'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent',
           'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-          checked ? 'bg-brand-600' : 'bg-gray-200',
+          checked ? 'bg-brand-600 dark:bg-brand-500' : 'bg-gray-200 dark:bg-slate-700',
           disabled && 'opacity-50 cursor-not-allowed',
         )}
       >

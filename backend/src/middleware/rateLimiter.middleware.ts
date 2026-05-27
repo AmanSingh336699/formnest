@@ -6,6 +6,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { redis } from '../config/redis';
 import { RateLimitError } from '../lib/AppError';
 import { RATE_LIMITS } from '../lib/constants';
+import { safeRedis } from '../lib/redisSafe';
 
 export interface RateLimitOptions {
   points: number;       // max requests
@@ -40,14 +41,21 @@ export function createRateLimiter(opts: RateLimitOptions) {
       const key = `rl:${opts.keyPrefix}:${identifier}`;
       const now = Date.now();
 
-      const result = (await redis.eval(
-        SCRIPT,
-        1,
-        key,
-        String(now),
-        String(opts.durationSec),
-        String(opts.points),
-      )) as [number, number];
+      const result = await safeRedis('rate-limit:eval', () =>
+        redis.eval(
+          SCRIPT,
+          1,
+          key,
+          String(now),
+          String(opts.durationSec),
+          String(opts.points),
+        ) as Promise<[number, number]>,
+      );
+
+      if (!result) {
+        next();
+        return;
+      }
 
       const [count, resetMs] = result;
       const remaining = Math.max(0, opts.points - count);
@@ -62,7 +70,11 @@ export function createRateLimiter(opts: RateLimitOptions) {
       }
       next();
     } catch (err) {
-      next(err);
+      if (err instanceof RateLimitError) {
+        next(err);
+        return;
+      }
+      next();
     }
   };
 }

@@ -63,8 +63,8 @@ export function FormsListPage(): JSX.Element {
     <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Forms</h1>
-          <p className="mt-1 text-sm text-gray-500">Create, edit, and manage your forms.</p>
+          <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Forms</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Create, edit, and manage your forms.</p>
         </div>
         <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} leftIcon={<Plus className="h-4 w-4" />}>
           New form
@@ -93,14 +93,14 @@ export function FormsListPage(): JSX.Element {
       {!isLoading && (data?.items ?? []).length > 0 && (
         <div className="space-y-3">
           {(data?.items ?? []).map((f: FormSummary) => (
-            <Card key={f.id} padded={false} className="p-5 transition-shadow hover:shadow-md">
+            <Card key={f.id} padded={false} className="p-5 transition-all hover:border-brand-200 hover:shadow-md dark:hover:border-brand-500/30 dark:hover:shadow-none">
               <div className="flex items-center justify-between gap-4">
                 <Link to={`/dashboard/forms/${f.id}`} className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate text-base font-medium text-gray-900">{f.title}</h3>
+                    <h3 className="truncate text-base font-medium text-slate-900 dark:text-slate-100">{f.title}</h3>
                     <Badge variant={statusVariant(f.status)}>{f.status.toLowerCase()}</Badge>
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+                  <div className="mt-1 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                     <span>{f.totalResponses} responses</span>
                     <span>·</span>
                     <span>{f.totalViews} views</span>
@@ -114,13 +114,13 @@ export function FormsListPage(): JSX.Element {
                   </Link>
                   <button
                     onClick={() => duplicateMutation.mutate(f.id)}
-                    className="rounded-md px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
+                    className="rounded-md px-2 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                   >
                     Duplicate
                   </button>
                   <button
                     onClick={() => setDeleteId(f.id)}
-                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                     aria-label="Delete form"
                   >
                     <MoreVertical className="h-4 w-4" />

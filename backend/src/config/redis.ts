@@ -9,6 +9,7 @@ import { logger } from './logger';
 const baseOpts = {
   maxRetriesPerRequest: null as null,
   enableReadyCheck: true,
+  commandTimeout: 1_000,
   retryStrategy(times: number): number {
     const delay = Math.min(times * 200, 5000);
     return delay;
@@ -17,7 +18,11 @@ const baseOpts = {
 
 export const redis = new Redis(env.REDIS_URL, {
   ...baseOpts,
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: 1,
+  retryStrategy(times: number): number | null {
+    if (times > 2) return null;
+    return Math.min(times * 200, 1_000);
+  },
 });
 
 /** Dedicated Redis connection for BullMQ (must have maxRetriesPerRequest = null). */

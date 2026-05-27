@@ -20,10 +20,10 @@ export function OverviewPage(): JSX.Element {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Welcome back, {user?.name?.split(' ')[0]}</h1>
-          <p className="mt-1 text-sm text-gray-500">Here's what's happening with your forms.</p>
+          <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Welcome back, {user?.name?.split(' ')[0]}</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Here's what's happening with your forms.</p>
         </div>
         <Link to="/dashboard/forms">
           <Button leftIcon={<Plus className="h-4 w-4" />}>Create form</Button>
@@ -37,7 +37,7 @@ export function OverviewPage(): JSX.Element {
       </div>
 
       <Card className="mt-8">
-        <h2 className="text-base font-semibold text-gray-900">Recent forms</h2>
+        <h2 className="text-base font-semibold text-slate-950 dark:text-white">Recent forms</h2>
         <div className="mt-4 space-y-2">
           {isLoading && (
             <>
@@ -47,16 +47,16 @@ export function OverviewPage(): JSX.Element {
             </>
           )}
           {!isLoading && (data?.items ?? []).slice(0, 5).map((f) => (
-            <Link key={f.id} to={`/dashboard/forms/${f.id}`} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-3 hover:bg-gray-50">
+            <Link key={f.id} to={`/dashboard/forms/${f.id}`} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/70">
               <div>
-                <div className="text-sm font-medium text-gray-900">{f.title}</div>
-                <div className="text-xs text-gray-500">{f.totalResponses} responses</div>
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{f.title}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{f.totalResponses} responses</div>
               </div>
-              <span className="text-xs text-gray-400">{new Date(f.updatedAt).toLocaleDateString()}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(f.updatedAt).toLocaleDateString()}</span>
             </Link>
           ))}
           {!isLoading && (data?.items ?? []).length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">No forms yet — create your first one!</p>
+            <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">No forms yet - create your first one!</p>
           )}
         </div>
       </Card>
@@ -68,10 +68,10 @@ function StatCard({ label, value, icon: Icon, loading }: { label: string; value:
   return (
     <Card>
       <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-brand-50 p-2"><Icon className="h-5 w-5 text-brand-600" /></div>
+        <div className="rounded-lg bg-brand-50 p-2 dark:bg-brand-500/15"><Icon className="h-5 w-5 text-brand-600 dark:text-brand-300" /></div>
         <div>
-          <div className="text-xs uppercase tracking-wider text-gray-500">{label}</div>
-          {loading ? <Skeleton className="mt-1 h-6 w-16" /> : <div className="text-2xl font-semibold text-gray-900">{value.toLocaleString()}</div>}
+          <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+          {loading ? <Skeleton className="mt-1 h-6 w-16" /> : <div className="text-2xl font-semibold text-slate-950 dark:text-white">{value.toLocaleString()}</div>}
         </div>
       </div>
     </Card>

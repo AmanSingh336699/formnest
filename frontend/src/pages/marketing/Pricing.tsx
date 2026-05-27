@@ -31,32 +31,34 @@ const PLANS = [
 
 export function PricingPage(): JSX.Element {
   return (
-    <div className="bg-white px-6 py-16">
+    <div className="bg-white px-6 py-14 dark:bg-slate-950">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900">Simple, transparent pricing</h1>
-          <p className="mt-3 text-lg text-gray-600">Start free. Upgrade when you outgrow it.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Simple, transparent pricing</h1>
+          <p className="mt-3 text-lg text-gray-600 dark:text-slate-300">Start free. Upgrade when you outgrow it.</p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {PLANS.map((p) => (
             <div
               key={p.name}
               className={
-                'rounded-2xl border p-8 ' +
-                (p.highlighted ? 'border-brand-600 bg-brand-50 shadow-lg' : 'border-gray-200 bg-white')
+                'flex flex-col rounded-lg border p-7 transition-colors ' +
+                (p.highlighted
+                  ? 'border-brand-600 bg-brand-50 shadow-lg dark:border-brand-400 dark:bg-brand-500/15'
+                  : 'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900')
               }
             >
-              <h2 className="text-xl font-semibold text-gray-900">{p.name}</h2>
-              <p className="mt-1 text-sm text-gray-500">{p.description}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{p.name}</h2>
+              <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{p.description}</p>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-gray-900">${p.price}</span>
-                {p.price > 0 && <span className="text-gray-500">/mo</span>}
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">${p.price}</span>
+                {p.price > 0 && <span className="text-gray-500 dark:text-slate-400">/mo</span>}
               </div>
-              <ul className="mt-6 space-y-3 text-sm text-gray-700">
+              <ul className="mt-6 flex-1 space-y-3 text-sm text-gray-700 dark:text-slate-300">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
                     <span>{f}</span>
                   </li>
                 ))}

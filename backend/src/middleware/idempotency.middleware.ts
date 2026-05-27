@@ -6,6 +6,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { redis } from '../config/redis';
 import { ConflictError } from '../lib/AppError';
 import { TOKEN_TTL } from '../lib/constants';
+import { safeRedisResult, safeRedisWrite } from '../lib/redisSafe';
 
 const HEADER = 'idempotency-key';
 
@@ -29,10 +30,10 @@ export async function idempotencyMiddleware(
     const scope = req.user?.id ?? req.ip ?? 'anon';
     const cacheKey = `idem:${scope}:${key}`;
 
-    const cached = await redis.get(cacheKey);
-    if (cached) {
+    const cached = await safeRedisResult('idempotency:get', () => redis.get(cacheKey));
+    if (cached.ok && cached.value) {
       try {
-        const parsed = JSON.parse(cached) as CachedResponse;
+        const parsed = JSON.parse(cached.value) as CachedResponse;
         res.status(parsed.status).json(parsed.body);
         return;
       } catch {
@@ -41,8 +42,8 @@ export async function idempotencyMiddleware(
     }
 
     // Lock to prevent concurrent duplicate processing
-    const lockAcquired = await redis.set(`${cacheKey}:lock`, '1', 'EX', 30, 'NX');
-    if (!lockAcquired) {
+    const lockAcquired = await safeRedisResult('idempotency:lock', () => redis.set(`${cacheKey}:lock`, '1', 'EX', 30, 'NX'));
+    if (lockAcquired.ok && !lockAcquired.value) {
       throw new ConflictError(
         'A request with this idempotency key is already being processed',
         'IDEMPOTENCY_CONFLICT',
@@ -52,11 +53,11 @@ export async function idempotencyMiddleware(
     const originalJson = res.json.bind(res);
     res.json = function patched(body: unknown): Response {
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        void redis
-          .set(cacheKey, JSON.stringify({ status: res.statusCode, body }), 'EX', TOKEN_TTL.IDEMPOTENCY_SEC)
-          .catch(() => undefined);
+        void safeRedisWrite('idempotency:set', () =>
+          redis.set(cacheKey, JSON.stringify({ status: res.statusCode, body }), 'EX', TOKEN_TTL.IDEMPOTENCY_SEC),
+        );
       }
-      void redis.del(`${cacheKey}:lock`).catch(() => undefined);
+      void safeRedisWrite('idempotency:unlock', () => redis.del(`${cacheKey}:lock`));
       return originalJson(body);
     };
 

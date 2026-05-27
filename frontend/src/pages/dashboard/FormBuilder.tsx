@@ -67,27 +67,27 @@ export function FormBuilderPage(): JSX.Element {
         : 'Saved';
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
-      <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
+    <div className="flex h-screen flex-col bg-gray-50 dark:bg-slate-950">
+      <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-3">
-          <Link to="/dashboard/forms" aria-label="Back" className="rounded-md p-1.5 hover:bg-gray-100">
-            <ArrowLeft className="h-4 w-4 text-gray-600" />
+          <Link to="/dashboard/forms" aria-label="Back" className="rounded-md p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800">
+            <ArrowLeft className="h-4 w-4 text-gray-600 dark:text-slate-300" />
           </Link>
           <div>
-            <div className="text-sm font-medium text-gray-900">{title || 'Untitled form'}</div>
-            <div className="text-xs text-gray-500">{savedLabel}</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{title || 'Untitled form'}</div>
+            <div className="text-xs text-gray-500 dark:text-slate-400">{savedLabel}</div>
           </div>
         </div>
         <nav className="flex items-center gap-1">
-          <Link to={`/dashboard/forms/${id}`} className="rounded-md px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50">Build</Link>
-          <Link to={`/dashboard/forms/${id}/responses`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100">Responses</Link>
-          <Link to={`/dashboard/forms/${id}/analytics`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100">
+          <Link to={`/dashboard/forms/${id}`} className="rounded-md bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">Build</Link>
+          <Link to={`/dashboard/forms/${id}/responses`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">Responses</Link>
+          <Link to={`/dashboard/forms/${id}/analytics`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
             <span className="inline-flex items-center gap-1"><BarChart2 className="h-3.5 w-3.5" />Analytics</span>
           </Link>
-          <Link to={`/dashboard/forms/${id}/share`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100">
+          <Link to={`/dashboard/forms/${id}/share`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
             <span className="inline-flex items-center gap-1"><Share2 className="h-3.5 w-3.5" />Share</span>
           </Link>
-          <Link to={`/dashboard/forms/${id}/settings`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100">
+          <Link to={`/dashboard/forms/${id}/settings`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
             <span className="inline-flex items-center gap-1"><Settings className="h-3.5 w-3.5" />Settings</span>
           </Link>
         </nav>
@@ -114,10 +114,10 @@ export function FormBuilderPage(): JSX.Element {
       </div>
 
       <Modal open={previewOpen} onOpenChange={setPreviewOpen} title="Form preview" size="xl">
-        <div className="-mx-6 -my-4 max-h-[70vh] overflow-y-auto bg-gray-50">
+        <div className="-mx-6 -my-4 max-h-[70vh] overflow-y-auto bg-gray-50 dark:bg-slate-950">
           <FormRenderer
             form={{ ...form, title, fields, theme, settings: form.settings }}
-            onSubmit={() => toast('This is a preview — submissions are disabled.')}
+            onSubmit={() => { toast('This is a preview - submissions are disabled.'); }}
             isPreview
             branding
           />

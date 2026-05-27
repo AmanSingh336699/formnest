@@ -144,6 +144,7 @@ export interface ApiKeyRow {
   id: string;
   name: string;
   keyPrefix: string;
+  canReveal: boolean;
   scopes: string[];
   lastUsedAt: string | null;
   expiresAt: string | null;

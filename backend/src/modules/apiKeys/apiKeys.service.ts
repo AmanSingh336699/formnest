@@ -3,37 +3,46 @@
  */
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { db } from '../../config/database';
-import { apiKeys, type ApiKey } from '../../../drizzle/schema/apiKeys';
+import { apiKeys } from '../../../drizzle/schema/apiKeys';
 import { generateApiKey, encryptApiKey, decryptApiKey } from '../../lib/apiKey';
 import { PLAN_LIMITS } from '../../lib/constants';
-import { NotFoundError, PaymentRequiredError, ForbiddenError } from '../../lib/AppError';
+import { NotFoundError, PaymentRequiredError, ForbiddenError, ConflictError } from '../../lib/AppError';
 import { recordAudit } from '../../lib/auditLog';
 import type { AuthenticatedUser } from '../../middleware/auth.middleware';
 
-export interface CreatedApiKey extends Omit<ApiKey, 'keyHash'> {
+export interface ApiKeyListItem {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  canReveal: boolean;
+  scopes: string[];
+  lastUsedAt: Date | null;
+  expiresAt: Date | null;
+  createdAt: Date;
+}
+
+export interface CreatedApiKey extends ApiKeyListItem {
   rawKey: string;
 }
 
 export const apiKeysService = {
-  async list(user: AuthenticatedUser): Promise<Omit<ApiKey, 'keyHash'>[]> {
+  async list(user: AuthenticatedUser): Promise<ApiKeyListItem[]> {
     const rows = await db
       .select({
         id: apiKeys.id,
-        userId: apiKeys.userId,
         name: apiKeys.name,
         keyPrefix: apiKeys.keyPrefix,
         scopes: apiKeys.scopes,
         lastUsedAt: apiKeys.lastUsedAt,
-        lastUsedIp: apiKeys.lastUsedIp,
         expiresAt: apiKeys.expiresAt,
-        revokedAt: apiKeys.revokedAt,
         createdAt: apiKeys.createdAt,
         encryptedKey: apiKeys.encryptedKey,
       })
       .from(apiKeys)
       .where(and(eq(apiKeys.userId, user.id), isNull(apiKeys.revokedAt)))
       .orderBy(apiKeys.createdAt);
-    return rows;
+
+    return rows.map(({ encryptedKey, ...row }) => ({ ...row, canReveal: Boolean(encryptedKey) }));
   },
 
   async create(
@@ -72,7 +81,14 @@ export const apiKeysService = {
     });
 
     return {
-      ...created,
+      id: created.id,
+      name: created.name,
+      keyPrefix: created.keyPrefix,
+      canReveal: true,
+      scopes: created.scopes,
+      lastUsedAt: created.lastUsedAt,
+      expiresAt: created.expiresAt,
+      createdAt: created.createdAt,
       rawKey,
     };
   },
@@ -104,9 +120,16 @@ export const apiKeysService = {
     if (!row) throw new NotFoundError('API key not found');
     if (row.userId !== user.id) throw new ForbiddenError();
     if (!row.encryptedKey) {
-      throw new Error('This API key was created before reveal support and cannot be shown. Please generate a new key.');
+      throw new ConflictError(
+        'This API key was created before reveal support and cannot be shown. Please generate a new key.',
+        'API_KEY_NOT_REVEALABLE',
+      );
     }
-    
-    return decryptApiKey(row.encryptedKey);
+
+    try {
+      return decryptApiKey(row.encryptedKey);
+    } catch {
+      throw new ConflictError('This API key cannot be revealed. Please revoke it and generate a new key.', 'API_KEY_NOT_REVEALABLE');
+    }
   },
 };

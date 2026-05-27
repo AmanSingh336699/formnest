@@ -7,6 +7,7 @@ import { redis } from '../../config/redis';
 import { forms } from '../../../drizzle/schema/forms';
 import { NotFoundError } from '../../lib/AppError';
 import type { AuthenticatedUser } from '../../middleware/auth.middleware';
+import { safeRedis } from '../../lib/redisSafe';
 
 export interface AnalyticsSummary {
   totalViews: number;
@@ -40,14 +41,14 @@ export const analyticsService = {
     const completionsKeys = dates.map((d) => `analytics:${formId}:${d}:completions`);
 
     const [viewVals, compVals] = await Promise.all([
-      redis.mget(...viewsKeys),
-      redis.mget(...completionsKeys),
+      safeRedis('analytics:views:mget', () => redis.mget(...viewsKeys)),
+      safeRedis('analytics:completions:mget', () => redis.mget(...completionsKeys)),
     ]);
 
     const daily = dates.map((date, i) => ({
       date,
-      views: Number(viewVals[i] ?? '0'),
-      completions: Number(compVals[i] ?? '0'),
+      views: Number(viewVals?.[i] ?? '0'),
+      completions: Number(compVals?.[i] ?? '0'),
     }));
 
     const totalViews = form.totalViews;
