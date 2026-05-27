@@ -9,6 +9,7 @@ export type FormStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED';
 export type FieldType =
   | 'TEXT_SHORT'
   | 'TEXT_LONG'
+  | 'PASSWORD'
   | 'EMAIL'
   | 'NUMBER'
   | 'PHONE'
@@ -51,12 +52,26 @@ export interface FieldOption {
   value: string;
 }
 
+export type FieldConditionOperator = 'equals' | 'notEquals' | 'contains' | 'notEmpty' | 'empty';
+
+export interface FieldVisibilityRule {
+  fieldId: string;
+  operator: FieldConditionOperator;
+  value?: string | number | boolean | string[] | null;
+}
+
+export interface FieldVisibility {
+  mode?: 'all' | 'any';
+  rules?: FieldVisibilityRule[];
+}
+
 export interface FieldOptions {
   choices?: FieldOption[];
   ratingType?: 'stars' | 'hearts' | 'thumbs';
   ratingMax?: number;
   defaultValue?: string | number | boolean | null;
   searchable?: boolean;
+  visibility?: FieldVisibility | null;
 }
 
 export interface FormField {

@@ -2,6 +2,7 @@
  * Client-side validation matching backend rules. Identical errors → consistent UX.
  */
 import type { FormField } from '../types';
+import { getVisibleFields } from './fieldVisibility';
 
 export type ValidationErrors = Record<string, string>;
 
@@ -20,7 +21,7 @@ function isEmpty(value: unknown): boolean {
 export function validateAnswers(fields: FormField[], answers: Record<string, unknown>): ValidationResult {
   const errors: ValidationErrors = {};
 
-  for (const field of fields) {
+  for (const field of getVisibleFields(fields, answers)) {
     if (field.type === 'HEADING' || field.type === 'DIVIDER') continue;
     const value = answers[field.id];
 
@@ -36,7 +37,7 @@ export function validateAnswers(fields: FormField[], answers: Record<string, unk
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         errors[field.id] = v?.customError ?? 'Please enter a valid email address';
       }
-    } else if ((field.type === 'TEXT_SHORT' || field.type === 'TEXT_LONG') && typeof value === 'string') {
+    } else if ((field.type === 'TEXT_SHORT' || field.type === 'TEXT_LONG' || field.type === 'PASSWORD') && typeof value === 'string') {
       if (v?.minLength && value.length < v.minLength) {
         errors[field.id] = v.customError ?? `Minimum ${v.minLength} characters required`;
       } else if (v?.maxLength && value.length > v.maxLength) {

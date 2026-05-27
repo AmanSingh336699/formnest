@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -12,6 +13,7 @@ export function RegisterPage(): JSX.Element {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; form?: string }>({});
   const navigate = useNavigate();
@@ -78,7 +80,7 @@ export function RegisterPage(): JSX.Element {
           error={errors.email}
         />
         <Input
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -86,6 +88,18 @@ export function RegisterPage(): JSX.Element {
           required
           helpText="Min 10 chars with 3 of: uppercase, lowercase, digit, symbol"
           error={errors.password}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              disabled={!password}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          }
+          inputClassName="pr-10"
         />
         <Button type="submit" loading={loading} fullWidth size="lg">Create account</Button>
       </form>

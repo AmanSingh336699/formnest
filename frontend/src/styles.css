@@ -32,6 +32,13 @@
   .text-balance { text-wrap: balance; }
 }
 
+.formnest-renderer input:focus,
+.formnest-renderer textarea:focus,
+.formnest-renderer select:focus {
+  border-color: var(--formnest-primary, theme('colors.brand.500'));
+  --tw-ring-color: color-mix(in srgb, var(--formnest-primary, theme('colors.brand.500')) 20%, transparent);
+}
+
 /* Dark-mode compatibility for older pages that still use light-only Tailwind utilities. */
 .dark .bg-white { background-color: #111827; }
 .dark .bg-gray-50 { background-color: #0f172a; }

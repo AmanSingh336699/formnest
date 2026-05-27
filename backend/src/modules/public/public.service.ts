@@ -61,8 +61,9 @@ function buildFieldValidator(field: FormField): z.ZodTypeAny {
 
   switch (field.type) {
     case 'TEXT_SHORT':
+    case 'PASSWORD':
     case 'TEXT_LONG': {
-      let s = z.string().max(v?.maxLength ?? (field.type === 'TEXT_LONG' ? 5000 : 500));
+      let s = z.string().max(v?.maxLength ?? (field.type === 'TEXT_LONG' ? 5000 : field.type === 'PASSWORD' ? 1024 : 500));
       if (v?.minLength) s = s.min(v.minLength);
       if (v?.regex) {
         try {
@@ -405,11 +406,19 @@ export const publicService = {
     answers: Record<string, unknown>,
   ): Promise<Array<{ fieldId: string; fieldType: FieldType; value: unknown }>> {
     const out: Array<{ fieldId: string; fieldType: FieldType; value: unknown }> = [];
+    const effectiveAnswers = fields.reduce<Record<string, unknown>>((acc, field) => {
+      if (field.options && Object.prototype.hasOwnProperty.call(field.options, 'defaultValue')) {
+        const value = field.options.defaultValue;
+        if (value !== undefined && value !== null && value !== '') acc[field.id] = value;
+      }
+      return acc;
+    }, { ...answers });
 
     for (const field of fields) {
       if (field.type === 'HEADING' || field.type === 'DIVIDER') continue;
+      if (!this.isFieldVisible(field, effectiveAnswers)) continue;
 
-      const raw = answers[field.id];
+      const raw = effectiveAnswers[field.id];
       const validator = buildFieldValidator(field);
       const parsed = validator.safeParse(raw);
 
@@ -438,6 +447,40 @@ export const publicService = {
       }
     }
     return out;
+  },
+
+  isFieldVisible(field: FormField, answers: Record<string, unknown>): boolean {
+    const visibility = field.options?.visibility;
+    const rules = visibility?.rules?.filter((rule) => rule.fieldId && rule.operator) ?? [];
+    if (rules.length === 0) return true;
+
+    const results = rules.map((rule) => {
+      const value = answers[rule.fieldId];
+      const isEmpty =
+        value === undefined ||
+        value === null ||
+        (typeof value === 'string' && value.trim() === '') ||
+        (Array.isArray(value) && value.length === 0);
+
+      switch (rule.operator) {
+        case 'equals':
+          return Array.isArray(value) ? value.includes(String(rule.value)) : String(value) === String(rule.value);
+        case 'notEquals':
+          return Array.isArray(value) ? !value.includes(String(rule.value)) : String(value) !== String(rule.value);
+        case 'contains':
+          return Array.isArray(value)
+            ? value.includes(String(rule.value))
+            : typeof value === 'string' && typeof rule.value === 'string' && value.includes(rule.value);
+        case 'notEmpty':
+          return !isEmpty;
+        case 'empty':
+          return isEmpty;
+        default:
+          return true;
+      }
+    });
+
+    return visibility?.mode === 'any' ? results.some(Boolean) : results.every(Boolean);
   },
 
   buildResponsePayload(

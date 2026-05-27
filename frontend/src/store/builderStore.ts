@@ -71,6 +71,7 @@ function defaultLabel(type: FieldType): string {
   const map: Record<FieldType, string> = {
     TEXT_SHORT: 'Short answer',
     TEXT_LONG: 'Long answer',
+    PASSWORD: 'Password',
     EMAIL: 'Email',
     NUMBER: 'Number',
     PHONE: 'Phone',

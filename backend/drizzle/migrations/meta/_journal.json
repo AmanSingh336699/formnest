@@ -15,6 +15,13 @@
       "when": 1779794095001,
       "tag": "0001_blue_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779864000000,
+      "tag": "0002_add_password_field",
+      "breakpoints": true
     }
   ]
 }

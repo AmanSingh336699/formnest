@@ -5,12 +5,25 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   helpText?: string;
   error?: string;
+  /**
+   * Optional element rendered inside the input wrapper on the right side
+   * (e.g. password eye toggle button).
+   */
+  rightElement?: React.ReactNode;
+  /**
+   * Extra class applied specifically to the <input> element to override padding, etc.
+   * (useful when rightElement is present).
+   */
+  inputClassName?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, helpText, error, id, required, ...props }, ref) => {
+  ({ className, inputClassName, rightElement, label, helpText, error, id, required, ...props }, ref) => {
     const inputId = id ?? `input-${Math.random().toString(36).slice(2, 9)}`;
     const describedBy = error ? `${inputId}-error` : helpText ? `${inputId}-help` : undefined;
+
+    const hasRight = !!rightElement;
+
     return (
       <div className="space-y-1.5">
         {label && (
@@ -19,27 +32,43 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {required && <span className="ml-0.5 text-red-500">*</span>}
           </label>
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          aria-describedby={describedBy}
-          aria-invalid={!!error}
-          className={cn(
-            'block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm',
-            'placeholder:text-gray-400 shadow-sm transition-colors',
-            'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20',
-            'disabled:bg-gray-50 disabled:cursor-not-allowed',
-            'dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400',
-            'dark:disabled:bg-slate-800',
-            error && 'border-red-400 focus:border-red-500 focus:ring-red-500/20',
-            className,
+
+        <div className="relative">
+          <input
+            ref={ref}
+            id={inputId}
+            aria-describedby={describedBy}
+            aria-invalid={!!error}
+            className={cn(
+              'block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm',
+              'placeholder:text-gray-400 shadow-sm transition-colors',
+              'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20',
+              'disabled:bg-gray-50 disabled:cursor-not-allowed',
+              'dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400',
+              'dark:disabled:bg-slate-800',
+              error && 'border-red-400 focus:border-red-500 focus:ring-red-500/20',
+              hasRight && 'pr-10',
+              inputClassName,
+              className,
+            )}
+            {...props}
+          />
+
+          {rightElement && (
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+              {rightElement}
+            </div>
           )}
-          {...props}
-        />
+        </div>
+
         {error ? (
-          <p id={`${inputId}-error`} role="alert" className="text-xs text-red-600 dark:text-red-400">{error}</p>
+          <p id={`${inputId}-error`} role="alert" className="text-xs text-red-600 dark:text-red-400">
+            {error}
+          </p>
         ) : helpText ? (
-          <p id={`${inputId}-help`} className="text-xs text-gray-500 dark:text-slate-400">{helpText}</p>
+          <p id={`${inputId}-help`} className="text-xs text-gray-500 dark:text-slate-400">
+            {helpText}
+          </p>
         ) : null}
       </div>
     );

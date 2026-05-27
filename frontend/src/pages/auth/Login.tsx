@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -11,6 +12,7 @@ import type { NormalizedError } from '../../api/client';
 export function LoginPage(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const navigate = useNavigate();
@@ -64,13 +66,25 @@ export function LoginPage(): JSX.Element {
           error={errors.email}
         />
         <Input
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           required
           error={errors.password}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              disabled={!password}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          }
+          inputClassName="pr-10"
         />
         <div className="flex items-center justify-end text-sm">
           <Link to="/forgot-password" className="text-brand-600 hover:underline">Forgot password?</Link>

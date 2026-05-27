@@ -18,6 +18,7 @@ export const formStatusEnum = pgEnum('form_status', ['DRAFT', 'PUBLISHED', 'CLOS
 export const fieldTypeEnum = pgEnum('field_type', [
   'TEXT_SHORT',
   'TEXT_LONG',
+  'PASSWORD',
   'EMAIL',
   'NUMBER',
   'PHONE',
@@ -129,6 +130,14 @@ export interface FieldOptions {
   ratingMax?: number;
   defaultValue?: string | number | boolean | null;
   searchable?: boolean;
+  visibility?: {
+    mode?: 'all' | 'any';
+    rules?: Array<{
+      fieldId: string;
+      operator: 'equals' | 'notEquals' | 'contains' | 'notEmpty' | 'empty';
+      value?: string | number | boolean | string[] | null;
+    }>;
+  } | null;
 }
 
 export type Form = typeof forms.$inferSelect;

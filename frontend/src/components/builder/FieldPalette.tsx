@@ -1,4 +1,4 @@
-import { Type, AlignLeft, Mail, Hash, Phone, Circle, Check, ChevronDown, Calendar, Star, ToggleRight, Heading2, Minus } from 'lucide-react';
+import { Type, AlignLeft, Mail, Hash, Phone, Circle, Check, ChevronDown, Calendar, Star, ToggleRight, Heading2, Minus, LockKeyhole } from 'lucide-react';
 import type { FieldType } from '../../types';
 import { useBuilderStore } from '../../store/builderStore';
 
@@ -12,6 +12,7 @@ interface PaletteItem {
 const PALETTE: PaletteItem[] = [
   { type: 'TEXT_SHORT', label: 'Short text', icon: Type, category: 'basic' },
   { type: 'TEXT_LONG', label: 'Long text', icon: AlignLeft, category: 'basic' },
+  { type: 'PASSWORD', label: 'Password', icon: LockKeyhole, category: 'basic' },
   { type: 'EMAIL', label: 'Email', icon: Mail, category: 'basic' },
   { type: 'NUMBER', label: 'Number', icon: Hash, category: 'basic' },
   { type: 'PHONE', label: 'Phone', icon: Phone, category: 'basic' },

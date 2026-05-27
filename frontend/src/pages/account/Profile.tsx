@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Eye, EyeOff } from 'lucide-react';
 import { usersApi } from '../../api/services/users.service';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -14,6 +15,8 @@ export function ProfilePage(): JSX.Element {
   const [name, setName] = useState('');
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
 
   if (user && !name) setName(user.name);
 
@@ -62,13 +65,43 @@ export function ProfilePage(): JSX.Element {
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use a strong password with a mix of character types.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input type="password" label="Current password" value={currentPass} onChange={(e) => setCurrentPass(e.target.value)} />
             <Input
-              type="password"
+              type={showCurrentPass ? 'text' : 'password'}
+              label="Current password"
+              value={currentPass}
+              onChange={(e) => setCurrentPass(e.target.value)}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPass((s) => !s)}
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+                  aria-label={showCurrentPass ? 'Hide current password' : 'Show current password'}
+                  disabled={!currentPass}
+                >
+                  {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
+              inputClassName="pr-10"
+            />
+
+            <Input
+              type={showNewPass ? 'text' : 'password'}
               label="New password"
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
               helpText="Min 10 chars with 3 of: uppercase, lowercase, digit, symbol"
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowNewPass((s) => !s)}
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+                  aria-label={showNewPass ? 'Hide new password' : 'Show new password'}
+                  disabled={!newPass}
+                >
+                  {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
+              inputClassName="pr-10"
             />
           </div>
           <div className="flex justify-end">

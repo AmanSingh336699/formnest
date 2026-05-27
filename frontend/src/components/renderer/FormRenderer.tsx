@@ -2,11 +2,12 @@
  * Renders the full form. Validates client-side then exposes onSubmit.
  * Used by FormBuilder live preview AND PublicFormView.
  */
-import { useState, useCallback, type FormEvent } from 'react';
+import { useMemo, useState, useCallback, type CSSProperties, type FormEvent } from 'react';
 import type { Form } from '../../types';
 import { FieldRenderer } from './FieldRenderer';
 import { Button } from '../ui/Button';
 import { validateAnswers, type ValidationErrors } from '../../lib/formValidation';
+import { getDefaultAnswers, getVisibleFields } from '../../lib/fieldVisibility';
 
 interface FormRendererProps {
   form: Form;
@@ -19,8 +20,9 @@ interface FormRendererProps {
 }
 
 export function FormRenderer({ form, initialAnswers, onFieldFocus, onSubmit, submitting, isPreview, branding }: FormRendererProps): JSX.Element {
-  const [answers, setAnswers] = useState<Record<string, unknown>>(initialAnswers ?? {});
+  const [answers, setAnswers] = useState<Record<string, unknown>>(() => ({ ...getDefaultAnswers(form.fields), ...(initialAnswers ?? {}) }));
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const visibleFields = useMemo(() => getVisibleFields(form.fields, answers), [answers, form.fields]);
 
   const updateAnswer = useCallback((fieldId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
@@ -46,22 +48,27 @@ export function FormRenderer({ form, initialAnswers, onFieldFocus, onSubmit, sub
         return;
       }
       setErrors({});
-      await onSubmit(answers);
+      const visibleFieldIds = new Set(visibleFields.map((field) => field.id));
+      const visibleAnswers = Object.fromEntries(
+        Object.entries(answers).filter(([fieldId]) => fieldId === '__honeypot' || visibleFieldIds.has(fieldId)),
+      );
+      await onSubmit(visibleAnswers);
     },
-    [answers, form.fields, onSubmit],
+    [answers, form.fields, onSubmit, visibleFields],
   );
 
   const theme = form.theme ?? {};
   const radius = theme.borderRadius === 'sharp' ? 'rounded-none' : theme.borderRadius === 'pill' ? 'rounded-full' : 'rounded-lg';
 
-  const style: React.CSSProperties = {
+  const rendererStyle: CSSProperties = {
+    '--formnest-primary': theme.primaryColor,
     backgroundColor: theme.backgroundColor,
     color: theme.textColor,
     fontFamily: theme.fontFamily,
-  };
+  } as CSSProperties;
 
   return (
-    <div className="min-h-full" style={style}>
+    <div className="formnest-renderer min-h-full" style={rendererStyle}>
       <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6 p-6 sm:p-8">
         {/* Honeypot — hidden, must remain empty */}
         <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}>
@@ -89,7 +96,7 @@ export function FormRenderer({ form, initialAnswers, onFieldFocus, onSubmit, sub
         </header>
 
         <div className="space-y-5">
-          {form.fields.map((field) => (
+          {visibleFields.map((field) => (
             <FieldRenderer
               key={field.id}
               field={field}
@@ -99,6 +106,7 @@ export function FormRenderer({ form, initialAnswers, onFieldFocus, onSubmit, sub
               error={errors[field.id]}
               disabled={submitting}
               primaryColor={theme.primaryColor}
+              textColor={theme.textColor}
             />
           ))}
         </div>

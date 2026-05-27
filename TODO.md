@@ -1,0 +1,5 @@
+- [ ] Update `frontend/src/components/ui/Input.tsx` to support password eye-toggle UI via optional `rightElement` and input padding (`inputClassName`).
+- [ ] Update `frontend/src/pages/account/Profile.tsx` to add eye icon button to current/new password fields (use `lucide-react` Eye/EyeOff).
+- [ ] Update `frontend/src/pages/auth/Login.tsx` to add eye icon button to password field (Eye/EyeOff).
+- [ ] Update `frontend/src/pages/auth/Register.tsx` to add eye icon button to password field (Eye/EyeOff).
+- [ ] Run frontend build/typecheck to ensure no TS/React issues.

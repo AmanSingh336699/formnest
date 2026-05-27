@@ -2,10 +2,10 @@
  * Renders a single FormField for live preview AND public submission.
  * Single source of truth — preview === submission UI.
  */
-import { type ChangeEvent } from 'react';
+import { useState, type CSSProperties, type ChangeEvent } from 'react';
 import { cn } from '../../lib/cn';
 import type { FormField } from '../../types';
-import { Star, Heart, ThumbsUp } from 'lucide-react';
+import { Eye, EyeOff, Star, Heart, ThumbsUp } from 'lucide-react';
 
 export interface FieldRendererProps {
   field: FormField;
@@ -15,11 +15,15 @@ export interface FieldRendererProps {
   error?: string;
   disabled?: boolean;
   primaryColor?: string;
+  textColor?: string;
 }
 
-export function FieldRenderer({ field, value, onChange, onFocus, error, disabled, primaryColor }: FieldRendererProps): JSX.Element | null {
+export function FieldRenderer({ field, value, onChange, onFocus, error, disabled, primaryColor, textColor }: FieldRendererProps): JSX.Element | null {
   const inputId = `field-${field.id}`;
   const describedBy = error ? `${inputId}-error` : field.helpText ? `${inputId}-help` : undefined;
+  const accentStyle: CSSProperties | undefined = primaryColor ? { accentColor: primaryColor } : undefined;
+  const labelStyle: CSSProperties | undefined = textColor ? { color: textColor } : undefined;
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const baseInput = cn(
     'block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm shadow-sm transition-colors',
@@ -31,23 +35,39 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
   function renderInput(): JSX.Element | null {
     switch (field.type) {
       case 'TEXT_SHORT':
+      case 'PASSWORD':
       case 'EMAIL':
       case 'PHONE':
         return (
-          <input
-            id={inputId}
-            type={field.type === 'EMAIL' ? 'email' : field.type === 'PHONE' ? 'tel' : 'text'}
-            value={(value as string) ?? ''}
-            placeholder={field.placeholder ?? ''}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-            onFocus={onFocus}
-            disabled={disabled}
-            required={field.required}
-            aria-describedby={describedBy}
-            aria-invalid={!!error}
-            maxLength={field.validation?.maxLength ?? 500}
-            className={baseInput}
-          />
+          <div className="relative">
+            <input
+              id={inputId}
+              type={field.type === 'EMAIL' ? 'email' : field.type === 'PHONE' ? 'tel' : field.type === 'PASSWORD' && !passwordVisible ? 'password' : 'text'}
+              value={(value as string) ?? ''}
+              placeholder={field.placeholder ?? ''}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+              onFocus={onFocus}
+              disabled={disabled}
+              required={field.required}
+              aria-describedby={describedBy}
+              aria-invalid={!!error}
+              maxLength={field.validation?.maxLength ?? (field.type === 'PASSWORD' ? 1024 : 500)}
+              autoComplete={field.type === 'PASSWORD' ? 'current-password' : undefined}
+              className={cn(baseInput, field.type === 'PASSWORD' && 'pr-10')}
+            />
+            {field.type === 'PASSWORD' && (
+              <button
+                type="button"
+                onClick={() => setPasswordVisible((visible) => !visible)}
+                disabled={disabled}
+                aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                aria-pressed={passwordVisible}
+                className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                {passwordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            )}
+          </div>
         );
 
       case 'TEXT_LONG':
@@ -120,9 +140,10 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                   onChange={() => onChange(c.value)}
                   onFocus={onFocus}
                   disabled={disabled}
+                  style={accentStyle}
                   className="h-4 w-4 text-brand-600 focus:ring-brand-500"
                 />
-                <span className="text-sm text-gray-700">{c.label}</span>
+                <span className="text-sm text-gray-700" style={labelStyle}>{c.label}</span>
               </label>
             ))}
           </div>
@@ -147,9 +168,10 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                     }}
                     onFocus={onFocus}
                     disabled={disabled}
+                    style={accentStyle}
                     className="h-4 w-4 rounded text-brand-600 focus:ring-brand-500"
                   />
-                  <span className="text-sm text-gray-700">{c.label}</span>
+                  <span className="text-sm text-gray-700" style={labelStyle}>{c.label}</span>
                 </label>
               );
             })}
@@ -226,6 +248,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                     ? 'border-brand-600 bg-brand-50 text-brand-700'
                     : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
                 )}
+                style={value === opt.val && primaryColor ? { borderColor: primaryColor, backgroundColor: `${primaryColor}14`, color: primaryColor } : labelStyle}
               >
                 {opt.label}
               </button>
@@ -251,7 +274,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
   if (field.type === 'HEADING') {
     return (
       <div className="border-b border-gray-200 pb-2 pt-2">
-        <h2 className="text-lg font-semibold" style={primaryColor ? { color: primaryColor } : undefined}>{field.label}</h2>
+        <h2 className="break-words text-lg font-semibold" style={primaryColor ? { color: primaryColor } : labelStyle}>{field.label}</h2>
         {field.helpText && <p className="mt-1 text-sm text-gray-500">{field.helpText}</p>}
       </div>
     );
@@ -263,7 +286,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
 
   return (
     <div className="space-y-2">
-      <label id={`${inputId}-label`} htmlFor={inputId} className="block text-sm font-medium text-gray-900">
+      <label id={`${inputId}-label`} htmlFor={inputId} className="block break-words text-sm font-medium text-gray-900" style={labelStyle}>
         {field.label}
         {field.required && <span className="ml-0.5 text-red-500" aria-hidden>*</span>}
       </label>

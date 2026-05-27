@@ -4,6 +4,7 @@ import { registry } from '../../openapi/registry';
 export const FIELD_TYPES = [
   'TEXT_SHORT',
   'TEXT_LONG',
+  'PASSWORD',
   'EMAIL',
   'NUMBER',
   'PHONE',
@@ -50,6 +51,23 @@ export const FieldOptionsSchema = z
     ratingMax: z.number().int().min(3).max(10).optional(),
     defaultValue: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
     searchable: z.boolean().optional(),
+    visibility: z
+      .object({
+        mode: z.enum(['all', 'any']).optional(),
+        rules: z
+          .array(
+            z.object({
+              fieldId: z.string().min(1).max(50),
+              operator: z.enum(['equals', 'notEquals', 'contains', 'notEmpty', 'empty']),
+              value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()]).optional(),
+            }),
+          )
+          .max(20)
+          .optional(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
   })
   .strict()
   .nullable()
