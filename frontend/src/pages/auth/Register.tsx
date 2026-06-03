@@ -23,7 +23,7 @@ export function RegisterPage(): JSX.Element {
     const next: typeof errors = {};
     if (!name.trim()) next.name = 'Name is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = 'Enter a valid email';
-    if (password.length < 10) next.password = 'Password must be at least 10 characters';
+    if (password.length < 6) next.password = 'Password must be at least 6 characters';
     else {
       const checks = [/[A-Z]/, /[a-z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(password)).length;
       if (checks < 3) next.password = 'Password must contain 3 of: uppercase, lowercase, digit, symbol';
@@ -39,8 +39,8 @@ export function RegisterPage(): JSX.Element {
     try {
       const { user, accessToken } = await authApi.register(email, password, name);
       setSession(user, accessToken);
-      toast.success('Account created! Please verify your email.');
-      navigate('/dashboard');
+      toast.success('Account created. Check your email for the OTP.');
+      navigate(`/verify-email?email=${encodeURIComponent(user.email)}`, { replace: true });
     } catch (err) {
       setErrors({ form: (err as NormalizedError)?.message ?? 'Registration failed' });
     } finally {
@@ -86,7 +86,7 @@ export function RegisterPage(): JSX.Element {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           required
-          helpText="Min 10 chars with 3 of: uppercase, lowercase, digit, symbol"
+          helpText="Min 6 chars with 3 of: uppercase, lowercase, digit, symbol"
           error={errors.password}
           rightElement={
             <button

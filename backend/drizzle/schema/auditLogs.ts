@@ -20,6 +20,15 @@ export const auditActionEnum = pgEnum('audit_action', [
   'KEY_REVOKE',
   'WEBHOOK_TEST',
   'EXPORT',
+  'ADMIN_VERIFY_EMAIL',
+  'ADMIN_UNVERIFY_EMAIL',
+  'ADMIN_SUSPEND',
+  'ADMIN_UNSUSPEND',
+  'ADMIN_CHANGE_PLAN',
+  'ADMIN_REVOKE_SESSIONS',
+  'ADMIN_RESEND_VERIFICATION',
+  'ADMIN_REVOKE_API_KEY',
+  'ADMIN_DISABLE_WEBHOOK',
 ]);
 
 export const auditLogs = pgTable(

@@ -16,7 +16,7 @@ const UpdateProfileSchema = z
 const ChangePasswordSchema = z
   .object({
     currentPassword: z.string().min(1).max(200),
-    newPassword: z.string().min(10).max(200),
+    newPassword: z.string().min(6).max(200),
   })
   .strict();
 

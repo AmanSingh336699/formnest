@@ -5,6 +5,9 @@
 import { Queue, QueueEvents } from 'bullmq';
 import { queueRedis } from './redis';
 import { logger } from './logger';
+import type { EmailJobData } from '../lib/emailTemplates';
+
+export type { EmailJobData } from '../lib/emailTemplates';
 
 export const QUEUE_NAMES = {
   WEBHOOK: 'webhook-delivery',
@@ -18,13 +21,6 @@ export interface WebhookJobData {
   eventType: string;
   payload: Record<string, unknown>;
   attempt: number;
-}
-
-export interface EmailJobData {
-  to: string;
-  subject: string;
-  template: string;
-  variables: Record<string, unknown>;
 }
 
 export const webhookQueue = new Queue<WebhookJobData>(QUEUE_NAMES.WEBHOOK, {

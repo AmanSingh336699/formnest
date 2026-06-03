@@ -8,8 +8,9 @@ import { eq, and, isNull, gt } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { redis } from '../../config/redis';
 import { safeRedis, safeRedisWrite } from '../../lib/redisSafe';
-import { emailQueue } from '../../config/queue';
-import { env } from '../../config/env';
+import { emailQueue, type EmailJobData } from '../../config/queue';
+import { env, isDev } from '../../config/env';
+import { sendEmail } from '../../config/email';
 import { logger } from '../../config/logger';
 import {
   users,
@@ -34,6 +35,32 @@ import { hashIp } from '../../lib/ipAnonymize';
 
 const REFRESH_TTL_DAYS = 7;
 const ACCESS_TTL_SEC = 15 * 60;
+const EMAIL_OTP_DIGITS = 6;
+
+function generateEmailOtp(): string {
+  const min = 10 ** (EMAIL_OTP_DIGITS - 1);
+  const max = 10 ** EMAIL_OTP_DIGITS;
+  return crypto.randomInt(min, max).toString();
+}
+
+function hashVerificationOtp(userId: string, otp: string): string {
+  return hashOpaqueToken(`${userId}:${otp}`);
+}
+
+async function dispatchEmail(jobName: string, job: EmailJobData): Promise<void> {
+  if (isDev) {
+    await sendEmail({
+      to: job.to,
+      subject: job.subject,
+      template: job.template,
+      variables: job.variables,
+    });
+    logger.info({ to: job.to, template: job.template }, 'Email sent directly in development');
+    return;
+  }
+
+  await emailQueue.add(jobName, job);
+}
 
 export interface AuthSession {
   user: Pick<User, 'id' | 'email' | 'name' | 'plan' | 'emailVerified'>;
@@ -94,10 +121,40 @@ export const authService = {
 
     const email = params.email.toLowerCase().trim();
 
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-    if (existing) throw new ConflictError('An account with this email already exists');
-
     const passwordHash = await hashPassword(params.password);
+    const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+
+    if (existing?.emailVerified) {
+      throw new ConflictError('An account with this email already exists');
+    }
+
+    if (existing) {
+      const [user] = await db
+        .update(users)
+        .set({
+          name: params.name.trim(),
+          passwordHash,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existing.id))
+        .returning();
+      if (!user) throw new Error('Failed to update unverified user');
+
+      await this.revokeAllUserSessions(user.id);
+      await this.sendVerificationEmail(user.id, user.email, user.name);
+
+      await recordAudit({
+        userId: user.id,
+        entityType: 'user',
+        entityId: user.id,
+        action: 'UPDATE',
+        diff: { reason: 'UNVERIFIED_SIGNUP_RETRY', email },
+        ip: params.ip,
+        userAgent: params.userAgent,
+      });
+
+      return issueSession({ user, userAgent: params.userAgent, ip: params.ip });
+    }
 
     const [user] = await db
       .insert(users)
@@ -220,19 +277,40 @@ export const authService = {
   },
 
   async sendVerificationEmail(userId: string, email: string, name: string): Promise<void> {
-    const token = generateOpaqueToken(32);
+    let verificationOtp = '';
+    let tokenHash = '';
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      verificationOtp = generateEmailOtp();
+      tokenHash = hashVerificationOtp(userId, verificationOtp);
+      const [existing] = await db
+        .select({ id: emailVerificationTokens.id })
+        .from(emailVerificationTokens)
+        .where(eq(emailVerificationTokens.tokenHash, tokenHash))
+        .limit(1);
+      if (!existing) break;
+      verificationOtp = '';
+      tokenHash = '';
+    }
+    if (!verificationOtp || !tokenHash) throw new Error('Failed to generate verification OTP');
+
     const expiresAt = new Date(Date.now() + TOKEN_TTL.EMAIL_VERIFICATION_SEC * 1000);
 
-    await db.insert(emailVerificationTokens).values({ userId, tokenHash: token.hash, expiresAt });
+    await db.transaction(async (tx) => {
+      await tx
+        .update(emailVerificationTokens)
+        .set({ usedAt: new Date() })
+        .where(and(eq(emailVerificationTokens.userId, userId), isNull(emailVerificationTokens.usedAt)));
 
-    const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${token.raw}`;
-    await emailQueue.add('verify-email', {
-      to: email,
-      subject: 'Verify your FormNest email',
-      template: 'verifyEmail',
-      variables: { name, verifyUrl },
+      await tx.insert(emailVerificationTokens).values({ userId, tokenHash, expiresAt });
     });
-    logger.info({ userId }, 'Verification email enqueued');
+
+    await dispatchEmail('verify-email', {
+      to: email,
+      subject: 'Your FormNest verification code',
+      template: 'verifyEmail',
+      variables: { name, verificationOtp, expiresIn: '24 hours' },
+    });
+    logger.info({ userId }, 'Verification email dispatched');
   },
 
   async verifyEmail(rawToken: string): Promise<void> {
@@ -263,6 +341,42 @@ export const authService = {
     });
   },
 
+  async verifyEmailOtp(email: string, otp: string): Promise<void> {
+    const lower = email.toLowerCase().trim();
+    const normalizedOtp = otp.trim();
+    const [user] = await db.select().from(users).where(eq(users.email, lower)).limit(1);
+
+    if (!user) throw new ValidationError('Invalid or expired verification code');
+    if (user.emailVerified) return;
+
+    const tokenHash = hashVerificationOtp(user.id, normalizedOtp);
+    const [row] = await db
+      .select()
+      .from(emailVerificationTokens)
+      .where(
+        and(
+          eq(emailVerificationTokens.userId, user.id),
+          eq(emailVerificationTokens.tokenHash, tokenHash),
+          isNull(emailVerificationTokens.usedAt),
+          gt(emailVerificationTokens.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+
+    if (!row) throw new ValidationError('Invalid or expired verification code');
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(emailVerificationTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(emailVerificationTokens.id, row.id));
+      await tx
+        .update(users)
+        .set({ emailVerified: true, emailVerifiedAt: new Date() })
+        .where(eq(users.id, user.id));
+    });
+  },
+
   async resendVerification(email: string): Promise<void> {
     const lower = email.toLowerCase().trim();
     const [user] = await db.select().from(users).where(eq(users.email, lower)).limit(1);
@@ -282,7 +396,7 @@ export const authService = {
     await db.insert(passwordResetTokens).values({ userId: user.id, tokenHash: token.hash, expiresAt });
 
     const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token.raw}`;
-    await emailQueue.add('password-reset', {
+    await dispatchEmail('password-reset', {
       to: user.email,
       subject: 'Reset your FormNest password',
       template: 'resetPassword',
@@ -326,7 +440,7 @@ export const authService = {
 
     const [user] = await db.select().from(users).where(eq(users.id, row.userId)).limit(1);
     if (user) {
-      await emailQueue.add('password-changed', {
+      await dispatchEmail('password-changed', {
         to: user.email,
         subject: 'Your FormNest password was changed',
         template: 'passwordChanged',
@@ -352,6 +466,13 @@ export const authService = {
         .update(refreshTokens)
         .set({ revokedAt: new Date() })
         .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
+    });
+
+    await dispatchEmail('password-changed', {
+      to: user.email,
+      subject: 'Your FormNest password was changed',
+      template: 'passwordChanged',
+      variables: { name: user.name },
     });
   },
 };

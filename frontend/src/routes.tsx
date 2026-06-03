@@ -26,6 +26,15 @@ import { DangerZonePage } from './pages/account/DangerZone';
 import { PublicFormViewPage } from './pages/public/FormView';
 import { NotFoundPage } from './pages/public/NotFound';
 
+import { AdminShell } from './components/admin/AdminShell';
+import { RequireAdmin } from './components/admin/RequireAdmin';
+import AdminDashboardPage from './pages/admin/Dashboard';
+import AdminUsersListPage from './pages/admin/UsersList';
+import AdminUserDetailPage from './pages/admin/UserDetail';
+import AdminFormsListPage from './pages/admin/FormsList';
+import AdminApiKeysPage from './pages/admin/ApiKeysList';
+import AdminWebhooksPage from './pages/admin/WebhooksList';
+
 export const router = createBrowserRouter([
   // Marketing
   {
@@ -79,6 +88,25 @@ export const router = createBrowserRouter([
         <FormBuilderPage />
       </RequireAuth>
     ),
+  },
+
+  // Admin Panel (authenticated + admin only)
+  {
+    element: (
+      <RequireAuth>
+        <RequireAdmin>
+          <AdminShell />
+        </RequireAdmin>
+      </RequireAuth>
+    ),
+    children: [
+      { path: '/admin', element: <AdminDashboardPage /> },
+      { path: '/admin/users', element: <AdminUsersListPage /> },
+      { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
+      { path: '/admin/forms', element: <AdminFormsListPage /> },
+      { path: '/admin/api-keys', element: <AdminApiKeysPage /> },
+      { path: '/admin/webhooks', element: <AdminWebhooksPage /> },
+    ],
   },
 
   // Public form view (no shell)

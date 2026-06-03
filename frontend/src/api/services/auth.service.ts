@@ -25,8 +25,8 @@ export const authApi = {
     await api.post(ENDPOINTS.auth.logout);
   },
 
-  async verifyEmail(token: string): Promise<void> {
-    await api.post(ENDPOINTS.auth.verifyEmail, { token });
+  async verifyEmail(input: { token: string } | { email: string; otp: string }): Promise<void> {
+    await api.post(ENDPOINTS.auth.verifyEmail, input);
   },
 
   async resendVerification(email: string): Promise<void> {

@@ -31,6 +31,7 @@ export interface User {
   avatarUrl?: string | null;
   locale?: string;
   timezone?: string;
+  isAdmin: boolean;
 }
 
 export interface FieldValidation {
@@ -163,6 +164,7 @@ export interface ApiKeyRow {
   scopes: string[];
   lastUsedAt: string | null;
   expiresAt: string | null;
+  revokedAt?: string | null;
   createdAt: string;
 }
 
@@ -232,4 +234,88 @@ export interface ApiEnvelope<T> {
   data?: T;
   meta?: ApiMeta;
   error?: { code: string; message: string; details?: unknown };
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  verifiedUsers: number;
+  unverifiedUsers: number;
+  suspendedUsers: number;
+  plans: {
+    FREE: number;
+    PRO: number;
+    ENTERPRISE: number;
+  };
+  totalForms: number;
+  totalResponses: number;
+  totalApiKeys: number;
+  failedWebhooks: number;
+  recentSignups: Array<{
+    id: string;
+    email: string;
+    name: string;
+    createdAt: string;
+    plan: UserPlan;
+  }>;
+}
+
+export interface AdminUserRow {
+  id: string;
+  email: string;
+  name: string;
+  plan: UserPlan;
+  planValidUntil: string | null;
+  emailVerified: boolean;
+  isSuspended: boolean;
+  suspendedReason: string | null;
+  isAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserDetail {
+  user: AdminUserRow;
+  formsCount: number;
+  apiKeysCount: number;
+  webhooksCount: number;
+  forms: FormSummary[];
+  apiKeys: Omit<ApiKeyRow, 'canReveal'>[];
+  webhooks: WebhookRow[];
+}
+
+export interface AdminFormRow {
+  id: string;
+  title: string;
+  slug: string;
+  customSlug: string | null;
+  status: FormStatus;
+  createdAt: string;
+  userId: string;
+  userEmail: string | null;
+  userName: string | null;
+}
+
+export interface AdminApiKeyRow {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  userId: string;
+  userEmail: string | null;
+  userName: string | null;
+}
+
+export interface AdminWebhookRow {
+  id: string;
+  url: string;
+  isActive: boolean;
+  failureCount: number;
+  lastFailureAt: string | null;
+  autoDisabledAt: string | null;
+  createdAt: string;
+  userId: string;
+  userEmail: string | null;
+  userName: string | null;
 }

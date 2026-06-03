@@ -89,6 +89,15 @@ export const registerRateLimiter = createRateLimiter({
   keyPrefix: 'auth:register',
 });
 
+export const verifyEmailLimiter = createRateLimiter({
+  ...RATE_LIMITS.AUTH_VERIFY_EMAIL,
+  keyPrefix: 'auth:verify-email',
+  identifierFn: (req) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase().trim() : 'unknown';
+    return `${email}:${req.ip ?? 'unknown'}`;
+  },
+});
+
 export const resendVerificationLimiter = createRateLimiter({
   ...RATE_LIMITS.AUTH_RESEND_VERIFICATION,
   keyPrefix: 'auth:resend',

@@ -19,6 +19,7 @@ export function LoginPage(): JSX.Element {
   const setSession = useAuthStore((s) => s.setSession);
   const [params] = useSearchParams();
   const sessionExpired = params.get('session') === 'expired';
+  const justVerified = params.get('verified') === 'true';
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -27,6 +28,11 @@ export function LoginPage(): JSX.Element {
     try {
       const { user, accessToken } = await authApi.login(email, password);
       setSession(user, accessToken);
+      if (!user.emailVerified) {
+        toast.success('Enter the OTP sent to your email.');
+        navigate(`/verify-email?email=${encodeURIComponent(user.email)}`, { replace: true });
+        return;
+      }
       toast.success(`Welcome back, ${user.name}`);
       navigate('/dashboard');
     } catch (err) {
@@ -44,6 +50,11 @@ export function LoginPage(): JSX.Element {
         <p className="mt-1 text-sm text-gray-500">Sign in to your FormNest account</p>
       </div>
 
+      {justVerified && (
+        <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+          ✓ Email verified successfully! Sign in to continue.
+        </div>
+      )}
       {sessionExpired && (
         <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
           Your session expired. Please sign in again.
@@ -77,9 +88,8 @@ export function LoginPage(): JSX.Element {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
-              disabled={!password}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>

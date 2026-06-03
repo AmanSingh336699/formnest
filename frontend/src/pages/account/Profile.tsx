@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Eye, EyeOff } from 'lucide-react';
 import { usersApi } from '../../api/services/users.service';
@@ -18,7 +18,10 @@ export function ProfilePage(): JSX.Element {
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
 
-  if (user && !name) setName(user.name);
+  // Sync name from server once data loads (not during render to avoid stale-data bugs)
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+  }, [user?.name]);
 
   const saveMut = useMutation({
     mutationFn: () => usersApi.updateMe({ name }),
@@ -74,9 +77,8 @@ export function ProfilePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass((s) => !s)}
-                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
                   aria-label={showCurrentPass ? 'Hide current password' : 'Show current password'}
-                  disabled={!currentPass}
                 >
                   {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -89,14 +91,13 @@ export function ProfilePage(): JSX.Element {
               label="New password"
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
-              helpText="Min 10 chars with 3 of: uppercase, lowercase, digit, symbol"
+              helpText="Min 6 chars with 3 of: uppercase, lowercase, digit, symbol"
               rightElement={
                 <button
                   type="button"
                   onClick={() => setShowNewPass((s) => !s)}
-                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
                   aria-label={showNewPass ? 'Hide new password' : 'Show new password'}
-                  disabled={!newPass}
                 >
                   {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

@@ -9,5 +9,8 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
+  if (!user.emailVerified) {
+    return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email)}`} state={{ from: location.pathname }} replace />;
+  }
   return <>{children}</>;
 }

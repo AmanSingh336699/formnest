@@ -99,7 +99,11 @@ export const authController = {
 
   async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await authService.verifyEmail(req.body.token);
+      if ('token' in req.body) {
+        await authService.verifyEmail(req.body.token);
+      } else {
+        await authService.verifyEmailOtp(req.body.email, req.body.otp);
+      }
       success(res, { verified: true });
     } catch (err) {
       next(err);

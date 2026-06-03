@@ -44,7 +44,7 @@ export function ResetPasswordPage(): JSX.Element {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          helpText="Min 10 chars with 3 of: uppercase, lowercase, digit, symbol"
+          helpText="Min 6 chars with 3 of: uppercase, lowercase, digit, symbol"
         />
         <Button type="submit" loading={loading} fullWidth size="lg">Reset password</Button>
       </form>

@@ -15,6 +15,7 @@ import {
   type FormField,
   type FieldType,
 } from '../../../drizzle/schema/forms';
+import { users } from '../../../drizzle/schema/users';
 import { responses, responseAnswers } from '../../../drizzle/schema/responses';
 import { webhooks, webhookDeliveries } from '../../../drizzle/schema/webhooks';
 import { webhookQueue } from '../../config/queue';
@@ -335,7 +336,7 @@ export const publicService = {
 
     // Enqueue email notification if configured
     if (!isSpam && form.settings?.notifyOnResponse) {
-      const emails = form.settings.notifyEmails ?? [];
+      const emails = await this.getNotificationEmails(form);
       for (const to of emails) {
         await emailQueue
           .add('response-received', {
@@ -377,6 +378,19 @@ export const publicService = {
       .where(sql`id = ${userId}`)
       .limit(1);
     return row?.plan ?? 'FREE';
+  },
+
+  async getNotificationEmails(form: Form): Promise<string[]> {
+    const configured = form.settings?.notifyEmails?.map((email) => email.trim().toLowerCase()).filter(Boolean) ?? [];
+    if (configured.length > 0) return Array.from(new Set(configured));
+
+    const [owner] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, form.userId))
+      .limit(1);
+
+    return owner?.email ? [owner.email] : [];
   },
 
   async getMonthlyResponseCount(userId: string, quotaKey: string): Promise<number> {

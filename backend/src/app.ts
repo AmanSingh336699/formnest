@@ -36,6 +36,7 @@ import { exportsRoutes } from './modules/exports/exports.routes';
 import { teamsRoutes } from './modules/teams/teams.routes';
 import { billingRoutes, billingWebhookRoutes } from './modules/billing/billing.routes';
 import { filesRoutes } from './modules/notifications/files.routes';
+import { adminRoutes } from './modules/admin/admin.routes';
 
 import { generateOpenApiDocument } from './openapi/registry';
 import { success } from './lib/responseFormatter';
@@ -110,6 +111,7 @@ export function createApp(): Application {
   app.use('/api/v1/teams', teamsRoutes);
   app.use('/api/v1/billing', billingRoutes);
   app.use('/api/v1/files', filesRoutes);
+  app.use('/api/v1/admin', adminRoutes);
 
   app.get('/', (_req, res) => success(res, { name: 'FormNest API', version: '1.0.0' }));
 

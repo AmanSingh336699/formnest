@@ -6,7 +6,7 @@ export const RegisterBodySchema = registry.register(
   z
     .object({
       email: z.string().email().max(255),
-      password: z.string().min(10).max(200),
+      password: z.string().min(6).max(200),
       name: z.string().min(1).max(100),
     })
     .strict(),
@@ -24,9 +24,15 @@ export const LoginBodySchema = registry.register(
 );
 export type LoginBody = z.infer<typeof LoginBodySchema>;
 
-export const VerifyEmailBodySchema = z
-  .object({ token: z.string().min(20).max(200) })
-  .strict();
+export const VerifyEmailBodySchema = z.union([
+  z.object({ token: z.string().min(20).max(200) }).strict(),
+  z
+    .object({
+      email: z.string().email().max(255),
+      otp: z.string().regex(/^\d{6}$/, 'OTP must be a 6 digit code'),
+    })
+    .strict(),
+]);
 export type VerifyEmailBody = z.infer<typeof VerifyEmailBodySchema>;
 
 export const ResendVerificationBodySchema = z
@@ -40,7 +46,7 @@ export const ForgotPasswordBodySchema = z
 export const ResetPasswordBodySchema = z
   .object({
     token: z.string().min(20).max(200),
-    password: z.string().min(10).max(200),
+    password: z.string().min(6).max(200),
   })
   .strict();
 

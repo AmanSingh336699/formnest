@@ -38,6 +38,7 @@ export const PLAN_LIMITS = {
 export const RATE_LIMITS = {
   AUTH_LOGIN: { points: 5, durationSec: 900 },
   AUTH_REGISTER: { points: 3, durationSec: 3600 },
+  AUTH_VERIFY_EMAIL: { points: 5, durationSec: 900 },
   AUTH_RESEND_VERIFICATION: { points: 1, durationSec: 60 },
   AUTH_PASSWORD_RESET: { points: 3, durationSec: 3600 },
   PUBLIC_SUBMIT: { points: 10, durationSec: 3600 },

@@ -18,6 +18,7 @@ export interface AuthenticatedUser {
   plan: UserPlan;
   emailVerified: boolean;
   isSuspended: boolean;
+  isAdmin: boolean;
   sessionId?: string;       // present for JWT auth
   apiKeyId?: string;        // present for API key auth
   scopes?: string[];        // present for API key auth
@@ -78,6 +79,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
         plan: user.plan,
         emailVerified: user.emailVerified,
         isSuspended: user.isSuspended,
+        isAdmin: user.isAdmin,
         apiKeyId: apiKey.id,
         scopes: apiKey.scopes,
       };
@@ -98,6 +100,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       plan: user.plan,
       emailVerified: user.emailVerified,
       isSuspended: user.isSuspended,
+      isAdmin: user.isAdmin,
       sessionId: payload.sid,
     };
     next();
@@ -125,6 +128,22 @@ export function requireVerifiedEmail(req: Request, _res: Response, next: NextFun
   }
   if (!req.user.emailVerified) {
     next(new ForbiddenError('Please verify your email to perform this action', 'EMAIL_NOT_VERIFIED'));
+    return;
+  }
+  next();
+}
+
+export function requireAdmin(req: Request, _res: Response, next: NextFunction): void {
+  if (!req.user) {
+    next(new UnauthorizedError('Authentication required'));
+    return;
+  }
+  if (req.user.apiKeyId) {
+    next(new ForbiddenError('Admin access not allowed via API keys', 'FORBIDDEN'));
+    return;
+  }
+  if (!req.user.isAdmin) {
+    next(new ForbiddenError('Admin access required', 'FORBIDDEN'));
     return;
   }
   next();

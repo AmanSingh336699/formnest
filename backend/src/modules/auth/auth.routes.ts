@@ -6,6 +6,7 @@ import {
   registerRateLimiter,
   passwordResetLimiter,
   resendVerificationLimiter,
+  verifyEmailLimiter,
 } from '../../middleware/rateLimiter.middleware';
 import {
   RegisterBodySchema,
@@ -35,6 +36,7 @@ router.post('/logout', authController.logout);
 
 router.post(
   '/verify-email',
+  verifyEmailLimiter,
   validate({ body: VerifyEmailBodySchema }),
   authController.verifyEmail,
 );

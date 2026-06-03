@@ -22,6 +22,7 @@ export const users = pgTable(
     timezone: text('timezone').notNull().default('UTC'),
     isSuspended: boolean('is_suspended').notNull().default(false),
     suspendedReason: text('suspended_reason'),
+    isAdmin: boolean('is_admin').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
