@@ -75,7 +75,7 @@ export const FieldOptionsSchema = z
 
 export const FormFieldInputSchema = z
   .object({
-    id: z.string().optional(),
+    id: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_-]+$/).optional(),
     type: z.enum(FIELD_TYPES),
     label: z.string().min(1).max(200),
     placeholder: z.string().max(200).nullable().optional(),

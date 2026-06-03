@@ -123,6 +123,7 @@ export const formsService = {
           .insert(formFields)
           .values(
             body.fields.map((f, i) => ({
+              id: f.id,
               formId: form.id,
               type: f.type,
               label: f.label,
@@ -194,6 +195,7 @@ export const formsService = {
             .insert(formFields)
             .values(
               body.fields.map((f, i) => ({
+                id: f.id,
                 formId,
                 type: f.type,
                 label: f.label,

@@ -55,7 +55,19 @@ export const formsController = {
       const user = requireUser(req);
       const id = req.params.id;
       if (!id) throw new UnauthorizedError('Form id required');
-      const form = await formsService.update(user, id, req.body, {
+
+      // Keep UpdateFormBodySchema strict by stripping any extra keys
+      // coming from the client (e.g. formId, createdAt, updatedAt).
+      const safeBody = {
+        ...(req.body?.title !== undefined ? { title: req.body.title } : {}),
+        ...(req.body?.description !== undefined ? { description: req.body.description } : {}),
+        ...(req.body?.fields !== undefined ? { fields: req.body.fields } : {}),
+        ...(req.body?.theme !== undefined ? { theme: req.body.theme } : {}),
+        ...(req.body?.settings !== undefined ? { settings: req.body.settings } : {}),
+        ...(req.body?.customSlug !== undefined ? { customSlug: req.body.customSlug } : {}),
+      };
+
+      const form = await formsService.update(user, id, safeBody, {
         ip: req.ip ?? null,
         ua: req.headers['user-agent'] ?? null,
       });
