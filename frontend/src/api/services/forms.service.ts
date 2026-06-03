@@ -33,6 +33,32 @@ export interface UpdateFormInput {
   customSlug?: string | null;
 }
 
+type FormFieldInput = Omit<FormField, 'id'> & { id?: string };
+
+function normalizeFieldForApi(field: FormFieldInput, index: number): FormFieldInput {
+  const label = field.label?.trim();
+
+  return {
+    id: field.id,
+    type: field.type,
+    label: label || (field.type === 'DIVIDER' ? 'Divider' : 'Untitled field'),
+    placeholder: field.placeholder ?? null,
+    helpText: field.helpText ?? null,
+    required: Boolean(field.required),
+    position: Number.isInteger(field.position) && field.position >= 0 ? field.position : index,
+    validation: field.validation ?? null,
+    options: field.options ?? null,
+  };
+}
+
+function normalizeFormPayload<T extends CreateFormInput | UpdateFormInput>(input: T): T {
+  if (!input.fields) return input;
+  return {
+    ...input,
+    fields: input.fields.map((field, index) => normalizeFieldForApi(field, index)),
+  };
+}
+
 export const formsApi = {
   async list(params: FormListParams = {}): Promise<FormListResponse> {
     const { data } = await api.get<ApiEnvelope<FormSummary[]>>(ENDPOINTS.forms, { params });
@@ -51,13 +77,13 @@ export const formsApi = {
   },
 
   async create(input: CreateFormInput): Promise<Form> {
-    const { data } = await api.post<ApiEnvelope<Form>>(ENDPOINTS.forms, input);
+    const { data } = await api.post<ApiEnvelope<Form>>(ENDPOINTS.forms, normalizeFormPayload(input));
     if (!data.data) throw new Error('Create form failed');
     return data.data;
   },
 
   async update(id: string, input: UpdateFormInput): Promise<Form> {
-    const { data } = await api.patch<ApiEnvelope<Form>>(ENDPOINTS.form(id), input);
+    const { data } = await api.patch<ApiEnvelope<Form>>(ENDPOINTS.form(id), normalizeFormPayload(input));
     if (!data.data) throw new Error('Update form failed');
     return data.data;
   },
