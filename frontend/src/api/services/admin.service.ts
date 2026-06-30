@@ -32,10 +32,17 @@ export const adminApi = {
   },
 
   async listUsers(params: AdminUserListParams = {}): Promise<{ items: AdminUserRow[]; total: number }> {
-    const { data } = await api.get<ApiEnvelope<AdminUserRow[]>>(ENDPOINTS.admin.users, { params });
+    const { data } = await api.get<{
+      data: {
+        items: AdminUserRow[];
+        total: number;
+        page: number;
+        limit: number;
+      };
+    }>(ENDPOINTS.admin.users, { params });
     return {
-      items: data.data ?? [],
-      total: data.meta?.total ?? 0,
+      items: data.data?.items ?? [],
+      total: data.data?.total ?? 0,
     };
   },
 
@@ -92,26 +99,26 @@ export const adminApi = {
   },
 
   async listForms(params: { search?: string; page?: number; limit?: number } = {}): Promise<{ items: AdminFormRow[]; total: number }> {
-    const { data } = await api.get<ApiEnvelope<AdminFormRow[]>>(ENDPOINTS.admin.forms, { params });
+    const { data } = await api.get<{ data: { items: AdminFormRow[]; total: number } }>(ENDPOINTS.admin.forms, { params });
     return {
-      items: data.data ?? [],
-      total: data.meta?.total ?? 0,
+      items: data.data?.items ?? [],
+      total: data.data?.total ?? 0,
     };
   },
 
   async listApiKeys(params: { search?: string; page?: number; limit?: number } = {}): Promise<{ items: AdminApiKeyRow[]; total: number }> {
-    const { data } = await api.get<ApiEnvelope<AdminApiKeyRow[]>>(ENDPOINTS.admin.apiKeys, { params });
+    const { data } = await api.get<{ data: { items: AdminApiKeyRow[]; total: number } }>(ENDPOINTS.admin.apiKeys, { params });
     return {
-      items: data.data ?? [],
-      total: data.meta?.total ?? 0,
+      items: data.data?.items ?? [],
+      total: data.data?.total ?? 0,
     };
   },
 
   async listFailedWebhooks(params: { search?: string; page?: number; limit?: number } = {}): Promise<{ items: AdminWebhookRow[]; total: number }> {
-    const { data } = await api.get<ApiEnvelope<AdminWebhookRow[]>>(ENDPOINTS.admin.failedWebhooks, { params });
+    const { data } = await api.get<{ data: { items: AdminWebhookRow[]; total: number } }>(ENDPOINTS.admin.failedWebhooks, { params });
     return {
-      items: data.data ?? [],
-      total: data.meta?.total ?? 0,
+      items: data.data?.items ?? [],
+      total: data.data?.total ?? 0,
     };
   },
 

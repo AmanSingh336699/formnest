@@ -1,14 +1,26 @@
-import { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShieldAlert, CheckCircle2, XCircle, ChevronLeft, ChevronRight, SlidersHorizontal, Eye } from 'lucide-react';
-import { adminApi, type AdminUserListParams } from '../../api/services/admin.service';
-import type { AdminUserRow, UserPlan } from '../../types';
-import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Select } from '../../components/ui/Select';
-import toast from 'react-hot-toast';
+import { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Search,
+  ShieldAlert,
+  CheckCircle2,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  Eye,
+} from "lucide-react";
+import {
+  adminApi,
+  type AdminUserListParams,
+} from "../../api/services/admin.service";
+import type { AdminUserRow, UserPlan } from "../../types";
+import { Card } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Select } from "../../components/ui/Select";
+import toast from "react-hot-toast";
 
 export default function UsersList(): JSX.Element {
   const navigate = useNavigate();
@@ -17,15 +29,15 @@ export default function UsersList(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   // Filter state
-  const [search, setSearch] = useState('');
-  const [plan, setPlan] = useState<UserPlan | 'ALL'>('ALL');
-  const [verified, setVerified] = useState<'ALL' | 'true' | 'false'>('ALL');
-  const [suspended, setSuspended] = useState<'ALL' | 'true' | 'false'>('ALL');
+  const [search, setSearch] = useState("")
+  const [plan, setPlan] = useState<UserPlan | "ALL">("ALL");
+  const [verified, setVerified] = useState<"ALL" | "true" | "false">("ALL");
+  const [suspended, setSuspended] = useState<"ALL" | "true" | "false">("ALL");
   const [page, setPage] = useState(1);
   const limit = 20;
 
   // Ref to hold previous search term to avoid redundant calls
-  const prevParamsRef = useRef<string>('');
+  const prevParamsRef = useRef<string>("");
 
   async function fetchUsers() {
     setLoading(true);
@@ -35,22 +47,20 @@ export default function UsersList(): JSX.Element {
         limit,
       };
       if (search.trim()) params.search = search.trim();
-      if (plan !== 'ALL') params.plan = plan;
-      if (verified !== 'ALL') params.verified = verified === 'true';
-      if (suspended !== 'ALL') params.suspended = suspended === 'true';
+      if (plan !== "ALL") params.plan = plan;
+      if (verified !== "ALL") params.verified = verified === "true";
+      if (suspended !== "ALL") params.suspended = suspended === "true";
 
       const paramString = JSON.stringify(params);
       prevParamsRef.current = paramString;
 
       const data = await adminApi.listUsers(params);
-      
-      // Prevent state update if params changed during request
       if (prevParamsRef.current === paramString) {
-        setUsers(data.items);
-        setTotal(data.total);
+        setUsers(data?.items ?? []);
+        setTotal(data?.total ?? 0);
       }
     } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to load users');
+      toast.error(err?.message ?? "Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -70,10 +80,10 @@ export default function UsersList(): JSX.Element {
   }
 
   function handleClearFilters() {
-    setSearch('');
-    setPlan('ALL');
-    setVerified('ALL');
-    setSuspended('ALL');
+    setSearch("");
+    setPlan("ALL");
+    setVerified("ALL");
+    setSuspended("ALL");
     setPage(1);
   }
 
@@ -94,7 +104,9 @@ export default function UsersList(): JSX.Element {
         <form onSubmit={handleSearchSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
             <div className="lg:col-span-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Search Users</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                Search Users
+              </label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <Input
@@ -107,54 +119,78 @@ export default function UsersList(): JSX.Element {
             </div>
 
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Subscription Plan</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                Subscription Plan
+              </label>
               <Select
                 value={plan}
-                onChange={(e) => { setPlan(e.target.value as any); setPage(1); }}
+                onChange={(e) => {
+                  setPlan(e.target.value as any);
+                  setPage(1);
+                }}
                 className="h-10 w-full"
                 options={[
-                  { value: 'ALL', label: 'All Plans' },
-                  { value: 'FREE', label: 'Free' },
-                  { value: 'PRO', label: 'Pro' },
-                  { value: 'ENTERPRISE', label: 'Enterprise' },
+                  { value: "ALL", label: "All Plans" },
+                  { value: "FREE", label: "Free" },
+                  { value: "PRO", label: "Pro" },
+                  { value: "ENTERPRISE", label: "Enterprise" },
                 ]}
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Verification</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                Verification
+              </label>
               <Select
                 value={verified}
-                onChange={(e) => { setVerified(e.target.value as any); setPage(1); }}
+                onChange={(e) => {
+                  setVerified(e.target.value as any);
+                  setPage(1);
+                }}
                 className="h-10 w-full"
                 options={[
-                  { value: 'ALL', label: 'All States' },
-                  { value: 'true', label: 'Verified' },
-                  { value: 'false', label: 'Unverified' },
+                  { value: "ALL", label: "All States" },
+                  { value: "true", label: "Verified" },
+                  { value: "false", label: "Unverified" },
                 ]}
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Account Status</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                Account Status
+              </label>
               <Select
                 value={suspended}
-                onChange={(e) => { setSuspended(e.target.value as any); setPage(1); }}
+                onChange={(e) => {
+                  setSuspended(e.target.value as any);
+                  setPage(1);
+                }}
                 className="h-10 w-full"
                 options={[
-                  { value: 'ALL', label: 'All Statuses' },
-                  { value: 'false', label: 'Active' },
-                  { value: 'true', label: 'Suspended' },
+                  { value: "ALL", label: "All Statuses" },
+                  { value: "false", label: "Active" },
+                  { value: "true", label: "Suspended" },
                 ]}
               />
             </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" size="sm" onClick={handleClearFilters}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+            >
               Reset Filters
             </Button>
-            <Button type="submit" size="sm" leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}>
+            <Button
+              type="submit"
+              size="sm"
+              leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+            >
               Filter
             </Button>
           </div>
@@ -178,7 +214,9 @@ export default function UsersList(): JSX.Element {
           <div className="text-center py-16 text-slate-500">
             <XCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-base font-semibold">No users found</h3>
-            <p className="text-sm text-slate-400 mt-1">Try tweaking your filters or search terms.</p>
+            <p className="text-sm text-slate-400 mt-1">
+              Try tweaking your filters or search terms.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -194,7 +232,7 @@ export default function UsersList(): JSX.Element {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
-                {users.map((row) => (
+                {Array.isArray(users) && users.map((row) => (
                   <tr
                     key={row.id}
                     onClick={() => navigate(`/admin/users/${row.id}`)}
@@ -211,7 +249,9 @@ export default function UsersList(): JSX.Element {
                             </span>
                           )}
                         </span>
-                        <span className="text-xs text-slate-500">{row.email}</span>
+                        <span className="text-xs text-slate-500">
+                          {row.email}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -231,23 +271,28 @@ export default function UsersList(): JSX.Element {
                       <div className="flex items-center gap-2">
                         <Badge
                           variant={
-                            row.plan === 'FREE' ? 'neutral' : row.plan === 'PRO' ? 'default' : 'success'
+                            row.plan === "FREE"
+                              ? "neutral"
+                              : row.plan === "PRO"
+                                ? "default"
+                                : "success"
                           }
                         >
                           {row.plan}
                         </Badge>
                         {row.planValidUntil && (
                           <span className="text-[10px] text-slate-400">
-                            Until {new Date(row.planValidUntil).toLocaleDateString()}
+                            Until{" "}
+                            {new Date(row.planValidUntil).toLocaleDateString()}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-slate-400 text-xs">
                       {new Date(row.createdAt).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
                       })}
                     </td>
                     <td className="px-6 py-4">
@@ -257,8 +302,14 @@ export default function UsersList(): JSX.Element {
                         <span className="text-xs text-slate-400">User</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <Link to={`/admin/users/${row.id}`} className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-medium">
+                    <td
+                      className="px-6 py-4 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link
+                        to={`/admin/users/${row.id}`}
+                        className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-medium"
+                      >
                         <Eye className="h-3.5 w-3.5" />
                         <span>Manage</span>
                       </Link>
@@ -274,10 +325,11 @@ export default function UsersList(): JSX.Element {
         {!loading && users.length > 0 && (
           <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-4">
             <div className="text-xs text-slate-500">
-              Showing <span className="font-semibold">{(page - 1) * limit + 1}</span> to{' '}
+              Showing{" "}
+              <span className="font-semibold">{(page - 1) * limit + 1}</span> to{" "}
               <span className="font-semibold">
                 {Math.min(page * limit, total)}
-              </span>{' '}
+              </span>{" "}
               of <span className="font-semibold">{total}</span> users
             </div>
             <div className="flex items-center gap-2">

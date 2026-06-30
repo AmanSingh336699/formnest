@@ -3,35 +3,39 @@
  * Handles registration, login (with timing-attack mitigation), refresh rotation,
  * email verification, password reset.
  */
-import crypto from 'node:crypto';
-import { eq, and, isNull, gt } from 'drizzle-orm';
-import { db } from '../../config/database';
-import { redis } from '../../config/redis';
-import { safeRedis, safeRedisWrite } from '../../lib/redisSafe';
-import { emailQueue, type EmailJobData } from '../../config/queue';
-import { env, isDev } from '../../config/env';
-import { sendEmail } from '../../config/email';
-import { logger } from '../../config/logger';
+import crypto from "node:crypto";
+import { eq, and, isNull, gt } from "drizzle-orm";
+import { db } from "../../config/database";
+import { redis } from "../../config/redis";
+import { safeRedis, safeRedisWrite } from "../../lib/redisSafe";
+import { emailQueue, type EmailJobData } from "../../config/queue";
+import { env, isDev } from "../../config/env";
+import { sendEmail } from "../../config/email";
+import { logger } from "../../config/logger";
 import {
   users,
   emailVerificationTokens,
   passwordResetTokens,
   refreshTokens,
   type User,
-} from '../../../drizzle/schema/users';
-import { signAccessToken } from '../../lib/jwt';
-import { hashPassword, verifyPassword, validatePasswordComplexity } from '../../lib/password';
-import { generateOpaqueToken, hashOpaqueToken } from '../../lib/tokens';
-import { recordAudit } from '../../lib/auditLog';
+} from "../../../drizzle/schema/users";
+import { signAccessToken } from "../../lib/jwt";
+import {
+  hashPassword,
+  verifyPassword,
+  validatePasswordComplexity,
+} from "../../lib/password";
+import { generateOpaqueToken, hashOpaqueToken } from "../../lib/tokens";
+import { recordAudit } from "../../lib/auditLog";
 import {
   ConflictError,
   UnauthorizedError,
   ValidationError,
   ForbiddenError,
   NotFoundError,
-} from '../../lib/AppError';
-import { LOGIN_FAILURE_LOCK, TOKEN_TTL } from '../../lib/constants';
-import { hashIp } from '../../lib/ipAnonymize';
+} from "../../lib/AppError";
+import { LOGIN_FAILURE_LOCK, TOKEN_TTL } from "../../lib/constants";
+import { hashIp } from "../../lib/ipAnonymize";
 
 const REFRESH_TTL_DAYS = 7;
 const ACCESS_TTL_SEC = 15 * 60;
@@ -47,7 +51,10 @@ function hashVerificationOtp(userId: string, otp: string): string {
   return hashOpaqueToken(`${userId}:${otp}`);
 }
 
-async function dispatchEmail(jobName: string, job: EmailJobData): Promise<void> {
+async function dispatchEmail(
+  jobName: string,
+  job: EmailJobData,
+): Promise<void> {
   if (isDev) {
     await sendEmail({
       to: job.to,
@@ -55,7 +62,10 @@ async function dispatchEmail(jobName: string, job: EmailJobData): Promise<void> 
       template: job.template,
       variables: job.variables,
     });
-    logger.info({ to: job.to, template: job.template }, 'Email sent directly in development');
+    logger.info(
+      { to: job.to, template: job.template },
+      "Email sent directly in development",
+    );
     return;
   }
 
@@ -63,7 +73,16 @@ async function dispatchEmail(jobName: string, job: EmailJobData): Promise<void> 
 }
 
 export interface AuthSession {
-  user: Pick<User, 'id' | 'email' | 'name' | 'plan' | 'emailVerified'>;
+  user: Pick<
+    User,
+    | "id"
+    | "email"
+    | "name"
+    | "plan"
+    | "emailVerified"
+    | "isAdmin"
+    | "isSuspended"
+  >;
   accessToken: string;
   refreshToken: string;
   expiresInSec: number;
@@ -75,9 +94,15 @@ interface IssueSessionArgs {
   ip: string | null;
 }
 
-async function issueSession({ user, userAgent, ip }: IssueSessionArgs): Promise<AuthSession> {
+async function issueSession({
+  user,
+  userAgent,
+  ip,
+}: IssueSessionArgs): Promise<AuthSession> {
   const refresh = generateOpaqueToken(48);
-  const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(
+    Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
+  );
 
   const [refreshRow] = await db
     .insert(refreshTokens)
@@ -90,9 +115,13 @@ async function issueSession({ user, userAgent, ip }: IssueSessionArgs): Promise<
     })
     .returning({ id: refreshTokens.id });
 
-  if (!refreshRow) throw new Error('Failed to create refresh token');
+  if (!refreshRow) throw new Error("Failed to create refresh token");
 
-  const accessToken = signAccessToken({ sub: user.id, sid: refreshRow.id, plan: user.plan });
+  const accessToken = signAccessToken({
+    sub: user.id,
+    sid: refreshRow.id,
+    plan: user.plan,
+  });
 
   return {
     user: {
@@ -101,6 +130,8 @@ async function issueSession({ user, userAgent, ip }: IssueSessionArgs): Promise<
       name: user.name,
       plan: user.plan,
       emailVerified: user.emailVerified,
+      isAdmin: user.isAdmin, 
+      isSuspended: user.isSuspended,
     },
     accessToken,
     refreshToken: refresh.raw,
@@ -122,10 +153,14 @@ export const authService = {
     const email = params.email.toLowerCase().trim();
 
     const passwordHash = await hashPassword(params.password);
-    const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [existing] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
 
     if (existing?.emailVerified) {
-      throw new ConflictError('An account with this email already exists');
+      throw new ConflictError("An account with this email already exists");
     }
 
     if (existing) {
@@ -138,17 +173,17 @@ export const authService = {
         })
         .where(eq(users.id, existing.id))
         .returning();
-      if (!user) throw new Error('Failed to update unverified user');
+      if (!user) throw new Error("Failed to update unverified user");
 
       await this.revokeAllUserSessions(user.id);
       await this.sendVerificationEmail(user.id, user.email, user.name);
 
       await recordAudit({
         userId: user.id,
-        entityType: 'user',
+        entityType: "user",
         entityId: user.id,
-        action: 'UPDATE',
-        diff: { reason: 'UNVERIFIED_SIGNUP_RETRY', email },
+        action: "UPDATE",
+        diff: { reason: "UNVERIFIED_SIGNUP_RETRY", email },
         ip: params.ip,
         userAgent: params.userAgent,
       });
@@ -160,16 +195,16 @@ export const authService = {
       .insert(users)
       .values({ email, name: params.name.trim(), passwordHash })
       .returning();
-    if (!user) throw new Error('Failed to create user');
+    if (!user) throw new Error("Failed to create user");
 
     // Send verification email (async via queue)
     await this.sendVerificationEmail(user.id, user.email, user.name);
 
     await recordAudit({
       userId: user.id,
-      entityType: 'user',
+      entityType: "user",
       entityId: user.id,
-      action: 'CREATE',
+      action: "CREATE",
       ip: params.ip,
       userAgent: params.userAgent,
     });
@@ -184,31 +219,49 @@ export const authService = {
     ip: string | null;
   }): Promise<AuthSession> {
     const email = params.email.toLowerCase().trim();
-    const ipKey = `login:fail:${hashIp(params.ip ?? '')}:${crypto.createHash('sha256').update(email).digest('hex').slice(0, 16)}`;
+    const ipKey = `login:fail:${hashIp(params.ip ?? "")}:${crypto.createHash("sha256").update(email).digest("hex").slice(0, 16)}`;
 
-    const fails = Number((await safeRedis('login-fail:get', () => redis.get(ipKey))) ?? '0');
+    const fails = Number(
+      (await safeRedis("login-fail:get", () => redis.get(ipKey))) ?? "0",
+    );
     if (fails >= LOGIN_FAILURE_LOCK.maxAttempts) {
-      throw new UnauthorizedError('Too many failed attempts. Try again later.', 'RATE_LIMIT_EXCEEDED');
+      throw new UnauthorizedError(
+        "Too many failed attempts. Try again later.",
+        "RATE_LIMIT_EXCEEDED",
+      );
     }
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
 
     // Constant-time-ish: always run bcrypt to avoid timing leak when user not found
-    const dummyHash = '$2b$12$abcdefghijklmnopqrstuv0123456789ABCDEFGHIJKLMNOPQRSTUVWX.';
+    const dummyHash =
+      "$2b$12$abcdefghijklmnopqrstuv0123456789ABCDEFGHIJKLMNOPQRSTUVWX.";
     const hashToCompare = user?.passwordHash ?? dummyHash;
     const passwordOk = await verifyPassword(params.password, hashToCompare);
 
     if (!user || !passwordOk) {
-      await safeRedisWrite('login-fail:incr', () => redis.incr(ipKey));
-      await safeRedisWrite('login-fail:expire', () => redis.expire(ipKey, LOGIN_FAILURE_LOCK.windowSec));
-      throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
+      await safeRedisWrite("login-fail:incr", () => redis.incr(ipKey));
+      await safeRedisWrite("login-fail:expire", () =>
+        redis.expire(ipKey, LOGIN_FAILURE_LOCK.windowSec),
+      );
+      throw new UnauthorizedError(
+        "Invalid email or password",
+        "INVALID_CREDENTIALS",
+      );
     }
 
     if (user.isSuspended) {
-      throw new ForbiddenError('This account has been suspended', 'ACCOUNT_SUSPENDED');
+      throw new ForbiddenError(
+        "This account has been suspended",
+        "ACCOUNT_SUSPENDED",
+      );
     }
 
-    await safeRedisWrite('login-fail:del', () => redis.del(ipKey));
+    await safeRedisWrite("login-fail:del", () => redis.del(ipKey));
 
     await db
       .update(users)
@@ -220,9 +273,9 @@ export const authService = {
 
     await recordAudit({
       userId: user.id,
-      entityType: 'user',
+      entityType: "user",
       entityId: user.id,
-      action: 'LOGIN',
+      action: "LOGIN",
       ip: params.ip,
       userAgent: params.userAgent,
     });
@@ -249,14 +302,26 @@ export const authService = {
       )
       .limit(1);
 
-    if (!existing) throw new UnauthorizedError('Invalid or expired refresh token', 'TOKEN_INVALID');
+    if (!existing)
+      throw new UnauthorizedError(
+        "Invalid or expired refresh token",
+        "TOKEN_INVALID",
+      );
 
-    const [user] = await db.select().from(users).where(eq(users.id, existing.userId)).limit(1);
-    if (!user) throw new UnauthorizedError('User not found');
-    if (user.isSuspended) throw new ForbiddenError('Account suspended', 'ACCOUNT_SUSPENDED');
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, existing.userId))
+      .limit(1);
+    if (!user) throw new UnauthorizedError("User not found");
+    if (user.isSuspended)
+      throw new ForbiddenError("Account suspended", "ACCOUNT_SUSPENDED");
 
     // Revoke the old token (rotation)
-    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, existing.id));
+    await db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date() })
+      .where(eq(refreshTokens.id, existing.id));
 
     return issueSession({ user, userAgent: params.userAgent, ip: params.ip });
   },
@@ -266,19 +331,30 @@ export const authService = {
     await db
       .update(refreshTokens)
       .set({ revokedAt: new Date() })
-      .where(and(eq(refreshTokens.tokenHash, tokenHash), isNull(refreshTokens.revokedAt)));
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          isNull(refreshTokens.revokedAt),
+        ),
+      );
   },
 
   async revokeAllUserSessions(userId: string): Promise<void> {
     await db
       .update(refreshTokens)
       .set({ revokedAt: new Date() })
-      .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
+      .where(
+        and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)),
+      );
   },
 
-  async sendVerificationEmail(userId: string, email: string, name: string): Promise<void> {
-    let verificationOtp = '';
-    let tokenHash = '';
+  async sendVerificationEmail(
+    userId: string,
+    email: string,
+    name: string,
+  ): Promise<void> {
+    let verificationOtp = "";
+    let tokenHash = "";
     for (let attempt = 0; attempt < 5; attempt += 1) {
       verificationOtp = generateEmailOtp();
       tokenHash = hashVerificationOtp(userId, verificationOtp);
@@ -288,29 +364,39 @@ export const authService = {
         .where(eq(emailVerificationTokens.tokenHash, tokenHash))
         .limit(1);
       if (!existing) break;
-      verificationOtp = '';
-      tokenHash = '';
+      verificationOtp = "";
+      tokenHash = "";
     }
-    if (!verificationOtp || !tokenHash) throw new Error('Failed to generate verification OTP');
+    if (!verificationOtp || !tokenHash)
+      throw new Error("Failed to generate verification OTP");
 
-    const expiresAt = new Date(Date.now() + TOKEN_TTL.EMAIL_VERIFICATION_SEC * 1000);
+    const expiresAt = new Date(
+      Date.now() + TOKEN_TTL.EMAIL_VERIFICATION_SEC * 1000,
+    );
 
     await db.transaction(async (tx) => {
       await tx
         .update(emailVerificationTokens)
         .set({ usedAt: new Date() })
-        .where(and(eq(emailVerificationTokens.userId, userId), isNull(emailVerificationTokens.usedAt)));
+        .where(
+          and(
+            eq(emailVerificationTokens.userId, userId),
+            isNull(emailVerificationTokens.usedAt),
+          ),
+        );
 
-      await tx.insert(emailVerificationTokens).values({ userId, tokenHash, expiresAt });
+      await tx
+        .insert(emailVerificationTokens)
+        .values({ userId, tokenHash, expiresAt });
     });
 
-    await dispatchEmail('verify-email', {
+    await dispatchEmail("verify-email", {
       to: email,
-      subject: 'Your FormNest verification code',
-      template: 'verifyEmail',
-      variables: { name, verificationOtp, expiresIn: '24 hours' },
+      subject: "Your FormNest verification code",
+      template: "verifyEmail",
+      variables: { name, verificationOtp, expiresIn: "24 hours" },
     });
-    logger.info({ userId }, 'Verification email dispatched');
+    logger.info({ userId }, "Verification email dispatched");
   },
 
   async verifyEmail(rawToken: string): Promise<void> {
@@ -327,7 +413,8 @@ export const authService = {
       )
       .limit(1);
 
-    if (!row) throw new ValidationError('Invalid or expired verification token');
+    if (!row)
+      throw new ValidationError("Invalid or expired verification token");
 
     await db.transaction(async (tx) => {
       await tx
@@ -344,9 +431,14 @@ export const authService = {
   async verifyEmailOtp(email: string, otp: string): Promise<void> {
     const lower = email.toLowerCase().trim();
     const normalizedOtp = otp.trim();
-    const [user] = await db.select().from(users).where(eq(users.email, lower)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, lower))
+      .limit(1);
 
-    if (!user) throw new ValidationError('Invalid or expired verification code');
+    if (!user)
+      throw new ValidationError("Invalid or expired verification code");
     if (user.emailVerified) return;
 
     const tokenHash = hashVerificationOtp(user.id, normalizedOtp);
@@ -363,7 +455,7 @@ export const authService = {
       )
       .limit(1);
 
-    if (!row) throw new ValidationError('Invalid or expired verification code');
+    if (!row) throw new ValidationError("Invalid or expired verification code");
 
     await db.transaction(async (tx) => {
       await tx
@@ -379,7 +471,11 @@ export const authService = {
 
   async resendVerification(email: string): Promise<void> {
     const lower = email.toLowerCase().trim();
-    const [user] = await db.select().from(users).where(eq(users.email, lower)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, lower))
+      .limit(1);
     // Always succeed silently — don't leak account existence
     if (!user || user.emailVerified) return;
     await this.sendVerificationEmail(user.id, user.email, user.name);
@@ -387,19 +483,27 @@ export const authService = {
 
   async forgotPassword(email: string): Promise<void> {
     const lower = email.toLowerCase().trim();
-    const [user] = await db.select().from(users).where(eq(users.email, lower)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, lower))
+      .limit(1);
     // Don't leak existence
     if (!user) return;
 
     const token = generateOpaqueToken(32);
-    const expiresAt = new Date(Date.now() + TOKEN_TTL.PASSWORD_RESET_SEC * 1000);
-    await db.insert(passwordResetTokens).values({ userId: user.id, tokenHash: token.hash, expiresAt });
+    const expiresAt = new Date(
+      Date.now() + TOKEN_TTL.PASSWORD_RESET_SEC * 1000,
+    );
+    await db
+      .insert(passwordResetTokens)
+      .values({ userId: user.id, tokenHash: token.hash, expiresAt });
 
     const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token.raw}`;
-    await dispatchEmail('password-reset', {
+    await dispatchEmail("password-reset", {
       to: user.email,
-      subject: 'Reset your FormNest password',
-      template: 'resetPassword',
+      subject: "Reset your FormNest password",
+      template: "resetPassword",
       variables: { name: user.name, resetUrl },
     });
   },
@@ -421,7 +525,7 @@ export const authService = {
       )
       .limit(1);
 
-    if (!row) throw new ValidationError('Invalid or expired reset token');
+    if (!row) throw new ValidationError("Invalid or expired reset token");
 
     const passwordHash = await hashPassword(newPassword);
 
@@ -430,48 +534,80 @@ export const authService = {
         .update(passwordResetTokens)
         .set({ usedAt: new Date() })
         .where(eq(passwordResetTokens.id, row.id));
-      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, row.userId));
+      await tx
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, row.userId));
       // Revoke all refresh tokens
       await tx
         .update(refreshTokens)
         .set({ revokedAt: new Date() })
-        .where(and(eq(refreshTokens.userId, row.userId), isNull(refreshTokens.revokedAt)));
+        .where(
+          and(
+            eq(refreshTokens.userId, row.userId),
+            isNull(refreshTokens.revokedAt),
+          ),
+        );
     });
 
-    const [user] = await db.select().from(users).where(eq(users.id, row.userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, row.userId))
+      .limit(1);
     if (user) {
-      await dispatchEmail('password-changed', {
+      await dispatchEmail("password-changed", {
         to: user.email,
-        subject: 'Your FormNest password was changed',
-        template: 'passwordChanged',
+        subject: "Your FormNest password was changed",
+        template: "passwordChanged",
         variables: { name: user.name },
       });
     }
   },
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const complexityError = validatePasswordComplexity(newPassword);
     if (complexityError) throw new ValidationError(complexityError);
 
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) throw new NotFoundError('User not found');
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!user) throw new NotFoundError("User not found");
 
     const ok = await verifyPassword(currentPassword, user.passwordHash);
-    if (!ok) throw new UnauthorizedError('Current password is incorrect', 'INVALID_CREDENTIALS');
+    if (!ok)
+      throw new UnauthorizedError(
+        "Current password is incorrect",
+        "INVALID_CREDENTIALS",
+      );
 
     const passwordHash = await hashPassword(newPassword);
     await db.transaction(async (tx) => {
-      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+      await tx
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, userId));
       await tx
         .update(refreshTokens)
         .set({ revokedAt: new Date() })
-        .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
+        .where(
+          and(
+            eq(refreshTokens.userId, userId),
+            isNull(refreshTokens.revokedAt),
+          ),
+        );
     });
 
-    await dispatchEmail('password-changed', {
+    await dispatchEmail("password-changed", {
       to: user.email,
-      subject: 'Your FormNest password was changed',
-      template: 'passwordChanged',
+      subject: "Your FormNest password was changed",
+      template: "passwordChanged",
       variables: { name: user.name },
     });
   },

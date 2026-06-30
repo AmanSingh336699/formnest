@@ -131,7 +131,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
         return (
           <div role="radiogroup" aria-labelledby={`${inputId}-label`} className="space-y-2">
             {choices.map((c) => (
-              <label key={c.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50">
+              <label key={c.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 dark:border-slate-700 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800">
                 <input
                   type="radio"
                   name={inputId}
@@ -158,7 +158,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
             {choices.map((c) => {
               const checked = arrayValue.includes(c.value);
               return (
-                <label key={c.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50">
+                <label key={c.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 dark:border-slate-700 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800">
                   <input
                     type="checkbox"
                     value={c.value}
@@ -217,7 +217,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                 disabled={disabled}
                 aria-label={`Rate ${n} of ${max}`}
                 aria-pressed={current === n}
-                className="rounded p-1 transition-colors hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="rounded p-1 transition-colors hover:bg-amber-50 focus:outline-none dark:hover:bg-amber-950/30 focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <Icon
                   className={cn('h-7 w-7 transition-colors', n <= current ? 'fill-amber-400 text-amber-400' : 'text-gray-300')}
@@ -246,7 +246,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                   'flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors',
                   value === opt.val
                     ? 'border-brand-600 bg-brand-50 text-brand-700'
-                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+                    : 'border-gray-300 dark:border-slate-600 bg-white dark:bg-transparent text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800',
                 )}
                 style={value === opt.val && primaryColor ? { borderColor: primaryColor, backgroundColor: `${primaryColor}14`, color: primaryColor } : labelStyle}
               >
