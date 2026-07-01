@@ -18,10 +18,10 @@ declare global {
 }
 
 export const env = {
-  apiUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1',
-  appName: import.meta.env.VITE_APP_NAME ?? 'FormNest',
-  appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
-  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '',
-  sentryDsn: import.meta.env.VITE_SENTRY_DSN ?? '',
-  posthogKey: import.meta.env.VITE_POSTHOG_KEY ?? '',
+  apiUrl: import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1",
+  appName: import.meta.env.VITE_APP_NAME ?? "FormNest",
+  appUrl: import.meta.env.VITE_APP_URL ?? "http://localhost:5173",
+  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN ?? "",
+  posthogKey: import.meta.env.VITE_POSTHOG_KEY ?? "",
 } as const;
