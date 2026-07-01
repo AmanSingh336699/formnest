@@ -69,7 +69,16 @@ async function dispatchEmail(
     return;
   }
 
-  await emailQueue.add(jobName, job);
+  try {
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("BullMQ queue.add timed out")), 2000),
+    );
+    await Promise.race([emailQueue.add(jobName, job), timeout]);
+  } catch (err) {
+    logger.error({ err, jobName, to: job.to }, "Failed to queue email job");
+    // We don't throw here to ensure the user can still register.
+    // They can request a new verification email later.
+  }
 }
 
 export interface AuthSession {

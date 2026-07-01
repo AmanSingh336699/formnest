@@ -6,7 +6,15 @@ import { Redis } from 'ioredis';
 import { env } from './env';
 import { logger } from './logger';
 
+let redisUrl = env.REDIS_URL;
+if (redisUrl.includes('upstash.io') && redisUrl.startsWith('redis://')) {
+  redisUrl = redisUrl.replace('redis://', 'rediss://');
+}
+const isTls = redisUrl.startsWith('rediss://');
+
 const baseOpts = {
+  family: 0,
+  tls: isTls ? { rejectUnauthorized: false } : undefined,
   maxRetriesPerRequest: null as null,
   enableReadyCheck: false,
   enableOfflineQueue: false,
@@ -16,7 +24,7 @@ const baseOpts = {
   },
 };
 
-export const redis = new Redis(env.REDIS_URL, {
+export const redis = new Redis(redisUrl, {
   ...baseOpts,
   maxRetriesPerRequest: 1,
   commandTimeout: 5_000,
@@ -27,7 +35,7 @@ export const redis = new Redis(env.REDIS_URL, {
 });
 
 /** Dedicated Redis connection for BullMQ (must have maxRetriesPerRequest = null, no commandTimeout). */
-export const queueRedis = new Redis(env.REDIS_URL, baseOpts);
+export const queueRedis = new Redis(redisUrl, baseOpts);
 
 redis.on('error', (err) => logger.error({ err }, 'Redis error'));
 redis.on('connect', () => logger.info('Redis connected'));
