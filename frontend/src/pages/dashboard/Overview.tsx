@@ -19,7 +19,7 @@ export function OverviewPage(): JSX.Element {
   const totalViews = (data?.items ?? []).reduce((acc, f) => acc + f.totalViews, 0);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-6 py-8">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Welcome back, {user?.name?.split(' ')[0]}</h1>

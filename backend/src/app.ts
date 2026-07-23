@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { logger } from './config/logger';
@@ -89,6 +90,10 @@ export function createApp(): Application {
   app.get('/api/v1/openapi.json', (_req, res) => {
     res.json(generateOpenApiDocument());
   });
+  
+  app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApiDocument(), {
+    customSiteTitle: "FormNest API Documentation",
+  }));
 
   // Public (unauthenticated)
   app.use('/api/v1/public', publicRoutes);

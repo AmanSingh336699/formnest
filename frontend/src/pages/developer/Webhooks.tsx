@@ -64,14 +64,14 @@ export function WebhooksPage(): JSX.Element {
 
   if (!forms || forms.items.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mx-auto max-w-[1600px] px-6 py-8">
         <EmptyState icon={WebhookIcon} title="No forms yet" description="Create a form first to add webhooks." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Webhooks</h1>

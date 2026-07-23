@@ -71,7 +71,7 @@ export function FormNestEmbed() {
   -H 'Authorization: Bearer fn_your_api_key'`;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-6 py-8">
       <div className="mb-6 flex items-center gap-3">
         <Link to={`/dashboard/forms/${id}`} className="rounded-md p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800"><ArrowLeft className="h-4 w-4" /></Link>
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Share "{form?.title ?? '...'}"</h1>

@@ -68,18 +68,64 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+async function getGmailAccessToken(): Promise<string> {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: env.GOOGLE_CLIENT_ID!,
+      client_secret: env.GOOGLE_CLIENT_SECRET!,
+      refresh_token: env.GOOGLE_REFRESH_TOKEN!,
+      grant_type: 'refresh_token',
+    }).toString(),
+  });
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to refresh Google access token: ${error}`);
+  }
+  const data = await response.json() as { access_token: string };
+  return data.access_token;
+}
+
+async function sendViaGmailApi(mailOptions: nodemailer.SendMailOptions): Promise<void> {
+  const streamTransporter = nodemailer.createTransport({ streamTransport: true, buffer: true });
+  const info = await streamTransporter.sendMail(mailOptions);
+  const rawBase64Url = (info.message as Buffer).toString('base64url');
+
+  const accessToken = await getGmailAccessToken();
+  const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ raw: rawBase64Url }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gmail API Error: ${response.status} ${errorText}`);
+  }
+}
+
 export async function sendEmail(params: SendEmailParams): Promise<void> {
   assertTemplateVariables(params.template, params.variables);
   const tpl = loadTemplate(params.template);
   const html = tpl(params.variables);
 
-  await transporter.sendMail({
+  const mailOptions = {
     from: `"${env.FROM_NAME}" <${env.FROM_EMAIL}>`,
     to: params.to,
     subject: params.subject,
     html,
     text: htmlToText(html),
-  });
+  };
+
+  if (env.GOOGLE_REFRESH_TOKEN && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    await sendViaGmailApi(mailOptions);
+  } else {
+    await transporter.sendMail(mailOptions);
+  }
 
   logger.info({ to: params.to, template: params.template }, 'Email sent');
 }
@@ -91,6 +137,16 @@ export function validateEmailTemplates(): void {
 }
 
 export async function verifyEmailTransport(): Promise<boolean> {
+  if (env.GOOGLE_REFRESH_TOKEN && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    try {
+      await getGmailAccessToken();
+      return true;
+    } catch (err) {
+      logger.error({ err }, 'Gmail API OAuth verification failed');
+      return false;
+    }
+  }
+
   try {
     await transporter.verify();
     return true;

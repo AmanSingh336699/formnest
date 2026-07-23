@@ -49,7 +49,7 @@ export function BillingPage(): JSX.Element {
   });
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-6 py-8">
       <h1 className="mb-6 text-2xl font-semibold text-gray-900">Billing & Plans</h1>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

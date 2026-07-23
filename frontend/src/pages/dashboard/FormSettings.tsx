@@ -63,7 +63,7 @@ export function FormSettingsPage(): JSX.Element {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 text-slate-850 dark:text-slate-100">
+    <div className="mx-auto max-w-[1600px] px-4 py-6 text-slate-850 dark:text-slate-100">
       {/* Top Header Section */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
         <div className="flex items-center gap-3">

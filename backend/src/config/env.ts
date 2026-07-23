@@ -25,6 +25,9 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_USER: z.string(),
   SMTP_PASS: z.string(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REFRESH_TOKEN: z.string().optional(),
   FROM_EMAIL: z.string().email(),
   FROM_NAME: z.string().default('FormNest'),
 

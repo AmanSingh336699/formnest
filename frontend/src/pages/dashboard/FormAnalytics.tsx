@@ -18,12 +18,14 @@ export function FormAnalyticsPage(): JSX.Element {
   const max = Math.max(1, ...(data?.daily ?? []).map((d) => Math.max(d.views, d.completions)));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-6 py-8">
       <div className="mb-6 flex items-center gap-3">
-        <Link to={`/dashboard/forms/${id}`} className="rounded-md p-1.5 hover:bg-gray-100"><ArrowLeft className="h-4 w-4" /></Link>
+        <Link to={`/dashboard/forms/${id}`} className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{form?.title ?? 'Analytics'}</h1>
-          <p className="text-xs text-gray-500">Last 7 days</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{form?.title ?? 'Analytics'}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Last 7 days</p>
         </div>
       </div>
 
@@ -35,7 +37,7 @@ export function FormAnalyticsPage(): JSX.Element {
       </div>
 
       <Card>
-        <h2 className="text-base font-semibold text-gray-900">Daily activity</h2>
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Daily activity</h2>
         {isLoading && <Skeleton className="mt-4 h-48 w-full" />}
         {!isLoading && (
           <div className="mt-6 flex h-48 items-end gap-2">
