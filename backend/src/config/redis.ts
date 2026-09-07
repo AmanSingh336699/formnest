@@ -19,7 +19,8 @@ const baseOpts = {
   enableReadyCheck: false,
   enableOfflineQueue: false,
   retryStrategy(times: number): number {
-    const delay = Math.min(times * 200, 5000);
+    // Exponential backoff with max 30s delay to save bandwidth & CPU if Redis is unreachable
+    const delay = Math.min(1000 * Math.pow(1.5, Math.min(times, 10)), 30000);
     return delay;
   },
 };
