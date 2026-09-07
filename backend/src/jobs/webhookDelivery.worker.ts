@@ -186,6 +186,7 @@ export function startWebhookWorker(): Worker<WebhookJobData> {
     {
       connection: queueRedis,
       concurrency: 20,
+      drainDelay: 30,
       removeOnComplete: { age: 24 * 3600, count: 1000 },
     },
   );

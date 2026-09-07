@@ -2,7 +2,7 @@
  * BullMQ queue factory. Two queues: webhook delivery, email dispatch.
  * Workers live in src/jobs/ and run in a separate process (worker.ts).
  */
-import { Queue, QueueEvents } from 'bullmq';
+import { Queue } from 'bullmq';
 import { queueRedis } from './redis';
 import { logger } from './logger';
 import type { EmailJobData } from '../lib/emailTemplates';
@@ -42,23 +42,10 @@ export const emailQueue = new Queue<EmailJobData>(QUEUE_NAMES.EMAIL, {
   },
 });
 
-export const webhookEvents = new QueueEvents(QUEUE_NAMES.WEBHOOK, { connection: queueRedis });
-export const emailEvents = new QueueEvents(QUEUE_NAMES.EMAIL, { connection: queueRedis });
-
-webhookEvents.on('failed', ({ jobId, failedReason }) => {
-  logger.warn({ jobId, failedReason }, 'Webhook job failed');
-});
-
-emailEvents.on('failed', ({ jobId, failedReason }) => {
-  logger.warn({ jobId, failedReason }, 'Email job failed');
-});
-
 export async function closeQueues(): Promise<void> {
   logger.info('Closing queues...');
   await Promise.all([
     webhookQueue.close(),
     emailQueue.close(),
-    webhookEvents.close(),
-    emailEvents.close(),
   ]);
 }

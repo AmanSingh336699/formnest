@@ -122,12 +122,17 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
   };
 
   if (env.GOOGLE_REFRESH_TOKEN && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
-    await sendViaGmailApi(mailOptions);
-  } else {
-    await transporter.sendMail(mailOptions);
+    try {
+      await sendViaGmailApi(mailOptions);
+      logger.info({ to: params.to, template: params.template }, 'Email sent via Gmail API');
+      return;
+    } catch (err) {
+      logger.warn({ err, to: params.to }, 'Gmail API failed; falling back to SMTP transport');
+    }
   }
 
-  logger.info({ to: params.to, template: params.template }, 'Email sent');
+  await transporter.sendMail(mailOptions);
+  logger.info({ to: params.to, template: params.template }, 'Email sent via SMTP');
 }
 
 export function validateEmailTemplates(): void {

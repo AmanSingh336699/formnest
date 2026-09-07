@@ -23,6 +23,7 @@ export function startEmailWorker(): Worker<EmailJobData> {
     {
       connection: queueRedis,
       concurrency: 10,
+      drainDelay: 30,
     },
   );
 
