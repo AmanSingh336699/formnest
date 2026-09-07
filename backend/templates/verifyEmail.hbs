@@ -156,21 +156,21 @@
       </div>
     </div>
 
-    <div class="content">
-      <h1>Verify your email, {{name}}</h1>
-      <p>Enter this one-time code on the FormNest verification page to activate your account.</p>
+    <div class="content" style="padding: 28px 30px 30px;">
+      <h1 style="font-size: 24px; line-height: 1.25; color: #111827; margin-bottom: 10px;">Verify your email, {{name}}</h1>
+      <p style="color: #475569; font-size: 15px; margin-bottom: 20px;">Enter this one-time code on the FormNest verification page to activate your account.</p>
 
-      <div class="otp-box">
-        <div class="otp-label">Verification code</div>
-        <div class="otp-code">{{verificationOtp}}</div>
+      <div class="otp-box" style="margin: 26px 0 22px; padding: 24px; border-radius: 16px; background: #f8fafc; border: 1px solid #dbe4f0; text-align: center;">
+        <div class="otp-label" style="margin-bottom: 10px; color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Verification code</div>
+        <div class="otp-code" style="color: #312e81; font-family: monospace, sans-serif; font-size: 38px; font-weight: 800; letter-spacing: 0.18em; display: block; margin: 10px 0;">{{verificationOtp}}</div>
       </div>
 
-      <div class="expiry">
+      <div class="expiry" style="margin-top: 16px; padding: 13px 14px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 14px;">
         This code expires in <strong>{{expiresIn}}</strong>. If you did not sign up for FormNest, you can ignore this email.
       </div>
     </div>
 
-    <div class="footer">
+    <div class="footer" style="border-top: 1px solid #edf1f7; padding: 18px 30px 24px; color: #64748b; font-size: 12px;">
       FormNest will never ask for this code outside the verification screen.
     </div>
   </div>

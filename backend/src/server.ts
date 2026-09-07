@@ -8,10 +8,15 @@ import { logger } from './config/logger';
 import { closeDatabase } from './config/database';
 import { closeRedis } from './config/redis';
 import { closeQueues } from './config/queue';
+import { startWebhookWorker } from './jobs/webhookDelivery.worker';
+import { startEmailWorker } from './jobs/emailDispatch.worker';
 
 async function main(): Promise<void> {
   const app = createApp();
   const httpServer = createServer(app);
+
+  const webhookWorker = startWebhookWorker();
+  const emailWorker = startEmailWorker();
 
   httpServer.listen(env.PORT, () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'FormNest API listening');
@@ -27,6 +32,7 @@ async function main(): Promise<void> {
     await new Promise((r) => setTimeout(r, 2000));
 
     try {
+      await Promise.allSettled([webhookWorker.close(), emailWorker.close()]);
       await Promise.allSettled([closeQueues(), closeDatabase(), closeRedis()]);
     } catch (err) {
       logger.error({ err }, 'Error during shutdown');

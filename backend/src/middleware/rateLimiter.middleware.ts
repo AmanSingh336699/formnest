@@ -17,21 +17,21 @@ export interface RateLimitOptions {
 
 const SCRIPT = `
 local key = KEYS[1]
-local now = tonumber(ARGV[1])
-local window = tonumber(ARGV[2])
-local limit = tonumber(ARGV[3])
+local window = tonumber(ARGV[1])
+local limit = tonumber(ARGV[2])
 
-redis.call('ZREMRANGEBYSCORE', key, 0, now - window * 1000)
-local count = redis.call('ZCARD', key)
-if count >= limit then
-  local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
-  local resetMs = window * 1000
-  if oldest[2] then resetMs = (tonumber(oldest[2]) + window * 1000) - now end
+local count = redis.call('INCR', key)
+if count == 1 then
+  redis.call('EXPIRE', key, window)
+end
+
+if count > limit then
+  local ttl = redis.call('TTL', key)
+  local resetMs = (ttl > 0 and ttl or window) * 1000
   return {count, resetMs}
 end
-redis.call('ZADD', key, now, now .. ':' .. math.random())
-redis.call('EXPIRE', key, window + 1)
-return {count + 1, window * 1000}
+
+return {count, window * 1000}
 `;
 
 export function createRateLimiter(opts: RateLimitOptions) {
@@ -39,14 +39,12 @@ export function createRateLimiter(opts: RateLimitOptions) {
     try {
       const identifier = opts.identifierFn?.(req) ?? req.ip ?? 'unknown';
       const key = `rl:${opts.keyPrefix}:${identifier}`;
-      const now = Date.now();
 
       const result = await safeRedis('rate-limit:eval', () =>
         redis.eval(
           SCRIPT,
           1,
           key,
-          String(now),
           String(opts.durationSec),
           String(opts.points),
         ) as Promise<[number, number]>,

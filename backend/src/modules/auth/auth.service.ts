@@ -75,9 +75,17 @@ async function dispatchEmail(
     );
     await Promise.race([emailQueue.add(jobName, job), timeout]);
   } catch (err) {
-    logger.error({ err, jobName, to: job.to }, "Failed to queue email job");
-    // We don't throw here to ensure the user can still register.
-    // They can request a new verification email later.
+    logger.error({ err, jobName, to: job.to }, "Failed to queue email job; sending directly");
+    try {
+      await sendEmail({
+        to: job.to,
+        subject: job.subject,
+        template: job.template,
+        variables: job.variables,
+      });
+    } catch (directErr) {
+      logger.error({ err: directErr, to: job.to }, "Direct email dispatch also failed");
+    }
   }
 }
 
