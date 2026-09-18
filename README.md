@@ -2,78 +2,82 @@
 
 > **Build forms in minutes. Collect responses forever.**
 
-Production-grade form builder SaaS — Typeform's elegance + Google Forms' simplicity + Formspree's developer-friendliness.
+Production-grade Form Builder SaaS platform — featuring live form building, file upload support via Cloudinary, real-time analytics, and admin control.
+
+---
 
 ## ✨ Features
 
-- 🎨 **Drag-drop builder** — 13 field types, instant preview, auto-save with retry
-- 🔌 **REST API + OpenAPI 3.1** — auto-generated docs, idempotency keys, cursor pagination
-- 🪝 **HMAC webhooks** — Stripe-style signatures, exponential retries, auto-disable on persistent failure
-- 📊 **Analytics** — views, starts, completions, 7-day chart (privacy-first, no third-party trackers)
-- 👥 **Teams + RBAC** — Owner/Member roles, email invitations
-- 💳 **Stripe billing** — Checkout + Customer Portal, plan limit enforcement
-- 🛡️ **Security-first** — GDPR IP anonymization, AES-GCM webhook secrets, bcrypt, audit log
-- ♿ **WCAG AA** — labels, ARIA, keyboard nav, focus rings
+- 🎨 **Drag-and-Drop Form Builder** — 14 field types (text, email, file uploads, dropdowns, ratings, etc.), live preview, auto-save.
+- ☁️ **Cloud Storage Integration** — Powered by **Cloudinary API** for secure, memory-buffered file uploads (up to 10MB per file with MIME validation).
+- 📊 **Real-time Analytics** — Privacy-first analytics tracking views, starts, completions, and conversion rates without 3rd-party trackers.
+- 🔐 **Authentication & Security** — Argon2id password hashing, Redis-backed rate limiting & session handling, GDPR-compliant IP anonymization.
+- 👑 **Admin Panel & User Management** — Full administrative controls for user verification, subscription plan management, and account suspension.
+- 💳 **Stripe Billing & Tier Quotas** — Streamlined plan tier limits (`maxForms` quota: Free 5, Pro 50, Enterprise 1000).
+- ♿ **Accessibility & Dark Mode** — Full WCAG AA compliant layout with adaptive dark mode.
 
-## 🏗️ Architecture
+---
+
+## 🏗️ Tech Stack & Architecture
 
 ```
 formnest/
-├── backend/        Node.js 20 + TypeScript strict + Express + Drizzle + Postgres + Redis + BullMQ
-└── frontend/       React 18 + TypeScript strict + Vite + Tailwind + TanStack Query + Zustand
+├── backend/        Node.js 20 + TypeScript + Express + Drizzle ORM + PostgreSQL + Redis + Cloudinary
+└── frontend/       React 18 + TypeScript + Vite + Tailwind CSS + TanStack Query + Zustand
 ```
 
-Two processes per deployment:
-- **API** (`backend/src/server.ts`) — Express HTTP, autoscaled
-- **Worker** (`backend/src/worker.ts`) — BullMQ workers (webhooks + emails), scaled by queue depth
+### Backend Micro-services & Workers:
+- **API Server** (`backend/src/server.ts`) — Express REST API
+- **Worker Process** (`backend/src/worker.ts`) — BullMQ email queue worker
 
-## 🚀 Quick start
+---
+
+## 🚀 Quick Start
+
+### 1. Backend Setup
 
 ```bash
-# Backend
 cd backend
 cp .env.example .env
-npm install
-npm run db:generate && npm run db:migrate && npm run db:seed
-npm run dev          # API on :4000
 
-# Worker (separate terminal)
+# Install dependencies
+npm install
+
+# Run database migrations
+npm run db:migrate
+
+# Start API server (:4000)
+npm run dev
+
+# Start Email Worker (separate terminal)
 npm run dev:worker
-
-# Frontend
-cd ../frontend
-cp .env.example .env
-npm install
-npm run dev          # UI on :5173
 ```
 
-**Demo login**: `demo@formnest.com` / `DemoPass123!`
+### 2. Frontend Setup
 
-## 📐 Stack decisions
+```bash
+cd frontend
+cp .env.example .env
 
-| Choice | Why |
-|---|---|
-| **Drizzle ORM** over Prisma | Explicit SQL, lightweight, no separate process, better TS inference |
-| **Postgres + Redis** | Postgres for durability; Redis for rate-limit, idempotency, queues, analytics counters |
-| **BullMQ** | Mature, battle-tested, supports retries with backoff + jitter |
-| **HS256 JWT (MVP)** | Simpler; RS256 in Phase 2 with key rotation |
-| **bcrypt over argon2** | Wider ecosystem support in MVP; argon2id consideration in Phase 2 |
-| **Fields as rows** (not embedded JSON) | Per-field analytics, indexing, schema evolution |
-| **Sync CSV export** (≤2000 rows) | Simpler than async queue for MVP; switch to job for larger exports |
-| **Transactional outbox** for webhooks | Prevents "response saved but webhook lost" on crash |
-| **Renderer = single source of truth** | `frontend/src/components/renderer/` used by BOTH builder preview AND public form view |
+# Install dependencies
+npm install
 
-## 🔐 Security highlights
+# Start development server (:5173)
+npm run dev
+```
 
-- IPs anonymized at write (last octet zeroed for IPv4, /48 for IPv6)
-- API keys: sha256 + env pepper, prefix shown in UI, raw shown ONCE on creation
-- Webhook secrets: AES-256-GCM encrypted at rest, HMAC-SHA256 signatures with timestamp (anti-replay)
-- Rate limiting: Redis sliding window per route + plan-aware API limits
-- Honeypot + time-trap + per-IP rate limit on public submissions
-- Audit log entry for every sensitive mutation
-- Strict CORS, Helmet, CSP-ready
-- All env vars Zod-validated on boot — fails fast
+---
+
+## 🛡️ Security Highlights
+
+- **IP Anonymization**: IP addresses anonymized at write time for GDPR compliance.
+- **Argon2id Hashing**: Industry-standard password hashing.
+- **Cloud Storage Security**: Cloudinary direct buffer streaming with server-side file type and size restrictions.
+- **Form Submission Protection**: Time-trap validation, honeypot traps, and rate limiting per IP.
+- **Audit Logging**: Comprehensive audit log entries recorded for administrative mutations.
+
+---
 
 ## 📜 License
 
-Proprietary — all rights reserved.
+Proprietary — All Rights Reserved.
