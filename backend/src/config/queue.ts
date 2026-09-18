@@ -1,7 +1,3 @@
-/**
- * BullMQ queue factory. Two queues: webhook delivery, email dispatch.
- * Workers live in src/jobs/ and run in a separate process (worker.ts).
- */
 import { Queue } from 'bullmq';
 import { queueRedis } from './redis';
 import { logger } from './logger';

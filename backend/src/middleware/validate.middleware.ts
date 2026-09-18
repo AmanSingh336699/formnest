@@ -1,7 +1,3 @@
-/**
- * Zod validation middleware. Validates body, query, params.
- * Strict mode by default (rejects unknown fields).
- */
 import type { Request, Response, NextFunction } from 'express';
 import type { ZodTypeAny } from 'zod';
 

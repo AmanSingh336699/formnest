@@ -1,7 +1,3 @@
-/**
- * JWT verification middleware. Attaches req.user.
- * Also handles API key auth via Bearer token in Authorization header.
- */
 import type { Request, Response, NextFunction } from 'express';
 import { eq, and, isNull, gt } from 'drizzle-orm';
 import { db } from '../config/database';
@@ -109,9 +105,6 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   }
 }
 
-/**
- * Same as requireAuth but does not throw if missing. Used for optional auth (e.g., public form view).
- */
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const token = extractBearer(req.headers.authorization);
   if (!token) {

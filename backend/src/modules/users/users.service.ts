@@ -1,6 +1,3 @@
-/**
- * Account / user-self service. Profile, password, GDPR delete, data export.
- */
 import { eq } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { users, type User } from '../../../drizzle/schema/users';

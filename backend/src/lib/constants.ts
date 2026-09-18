@@ -1,7 +1,3 @@
-/**
- * Centralized constants. No magic numbers anywhere else.
- */
-
 export const PLAN_LIMITS = {
   FREE: {
     maxForms: 5,
@@ -18,7 +14,7 @@ export const PLAN_LIMITS = {
     maxResponsesPerMonth: 10_000,
     maxApiKeys: 5,
     maxWebhooksPerForm: 5,
-    maxFileSizeBytes: 50 * 1024 * 1024,
+    maxFileSizeBytes: 10 * 1024 * 1024,
     webhookLogRetentionDays: 30,
     customSlug: true,
     removeBranding: true,
@@ -28,11 +24,15 @@ export const PLAN_LIMITS = {
     maxResponsesPerMonth: Infinity,
     maxApiKeys: Infinity,
     maxWebhooksPerForm: Infinity,
-    maxFileSizeBytes: 100 * 1024 * 1024,
+    maxFileSizeBytes: 10 * 1024 * 1024,
     webhookLogRetentionDays: 90,
     customSlug: true,
     removeBranding: true,
   },
+} as const;
+
+export const CLOUDINARY_LIMITS = {
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024, // 10 MB Cloudinary Free limit
 } as const;
 
 export const RATE_LIMITS = {

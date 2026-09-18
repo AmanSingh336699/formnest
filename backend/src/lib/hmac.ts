@@ -1,7 +1,3 @@
-/**
- * Stripe-style webhook signature: t=<timestamp>,v1=<hex hmac>
- * Receiver verifies signature within 5-min window to prevent replay.
- */
 import crypto from 'node:crypto';
 
 const SIG_VERSION = 'v1';
@@ -42,10 +38,6 @@ export function verifyWebhookSignature(
   return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(sig, 'hex'));
 }
 
-/**
- * Symmetric AES-256-GCM encryption for webhook secrets stored in DB.
- * Key derived from WEBHOOK_HMAC_SECRET env.
- */
 export function encryptSecret(plaintext: string, masterKey: string): string {
   const key = crypto.createHash('sha256').update(masterKey).digest();
   const iv = crypto.randomBytes(12);

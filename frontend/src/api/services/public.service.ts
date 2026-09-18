@@ -1,7 +1,3 @@
-/**
- * Unauthenticated public form fetch + submit.
- * Uses a separate axios instance to avoid auth interceptor side-effects.
- */
 import axios from 'axios';
 import { env } from '../../lib/env';
 import { ENDPOINTS } from '../endpoints';

@@ -1,7 +1,3 @@
-/**
- * Redis-backed sliding-window rate limiter.
- * Returns 429 with X-RateLimit-* headers.
- */
 import type { Request, Response, NextFunction } from 'express';
 import { redis } from '../config/redis';
 import { RateLimitError } from '../lib/AppError';

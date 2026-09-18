@@ -98,4 +98,37 @@ export const publicController = {
       next(err);
     }
   },
+
+  async createUploadUrl(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const formId = req.params.formId;
+      if (!formId) throw new ValidationError('formId required');
+      const body = req.body as { filename?: string; mimeType?: string; sizeBytes?: number };
+      if (!body.filename || !body.mimeType || typeof body.sizeBytes !== 'number') {
+        throw new ValidationError('filename, mimeType, and sizeBytes are required');
+      }
+      const result = await publicService.createUploadUrl(formId, {
+        filename: body.filename,
+        mimeType: body.mimeType,
+        sizeBytes: body.sizeBytes,
+      });
+      success(res, result);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async uploadDirect(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const formId = req.params.formId;
+      if (!formId) throw new ValidationError('formId required');
+      const file = req.file;
+      if (!file) throw new ValidationError('No file provided');
+
+      const result = await publicService.uploadDirect(formId, file);
+      success(res, result, undefined, 201);
+    } catch (err) {
+      next(err);
+    }
+  },
 };

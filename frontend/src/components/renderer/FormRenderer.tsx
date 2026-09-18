@@ -1,7 +1,3 @@
-/**
- * Renders the full form. Validates client-side then exposes onSubmit.
- * Used by FormBuilder live preview AND PublicFormView.
- */
 import { useMemo, useState, useCallback, type CSSProperties, type FormEvent } from 'react';
 import type { Form } from '../../types';
 import { FieldRenderer } from './FieldRenderer';
@@ -107,6 +103,7 @@ export function FormRenderer({ form, initialAnswers, onFieldFocus, onSubmit, sub
               disabled={submitting}
               primaryColor={theme.primaryColor}
               textColor={theme.textColor}
+              formId={form.id}
             />
           ))}
         </div>

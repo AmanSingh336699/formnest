@@ -5,6 +5,7 @@ import {
   ArrowLeft, Download, Trash2, ShieldAlert, Loader2,
   Inbox, Search, Calendar, Clock, Globe, CheckCircle,
   AlertTriangle, ChevronLeft, ChevronRight, X, User,
+  FileText, ExternalLink,
 } from 'lucide-react';
 import { formsApi } from '../../api/services/forms.service';
 import { responsesApi } from '../../api/services/responses.service';
@@ -14,9 +15,6 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 
-/* ─────────────────────────────────────────────
-   Helpers
-───────────────────────────────────────────── */
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
   if (Array.isArray(value)) return value.join(', ');
@@ -33,9 +31,6 @@ function fmtShort(iso: string) {
   return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-/* ─────────────────────────────────────────────
-   Empty state
-───────────────────────────────────────────── */
 function EmptyDetail() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-5 text-center px-8 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors duration-200">
@@ -55,9 +50,6 @@ function EmptyDetail() {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Metadata pill
-───────────────────────────────────────────── */
 function MetaPill({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 shadow-sm px-4 py-3 flex-1 min-w-0 transition-colors hover:border-brand-200 dark:hover:border-brand-500/30">
@@ -70,11 +62,72 @@ function MetaPill({ icon: Icon, label, value }: { icon: React.ElementType; label
   );
 }
 
-/* ─────────────────────────────────────────────
-   Answer card
-───────────────────────────────────────────── */
-function AnswerCard({ label, value, wide }: { label: string; value: string; wide: boolean }) {
+interface FileMeta {
+  url?: string;
+  filename?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  [key: string]: unknown;
+}
+
+function AnswerCard({
+  label,
+  value,
+  rawValue,
+  fieldType,
+  wide,
+}: {
+  label: string;
+  value: string;
+  rawValue?: unknown;
+  fieldType?: string;
+  wide: boolean;
+}) {
   const empty = value === '—';
+  const fileMeta =
+    fieldType === 'FILE_UPLOAD' || (typeof rawValue === 'object' && rawValue !== null && 'url' in (rawValue as object))
+      ? (rawValue as FileMeta)
+      : typeof rawValue === 'string' && rawValue.startsWith('http')
+      ? { url: rawValue, filename: rawValue.split('/').pop() }
+      : null;
+
+  if (fileMeta && fileMeta.url) {
+    const isImg = fileMeta.mimeType?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(fileMeta.filename || '');
+    return (
+      <div
+        className={`group relative overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-5 py-4 transition-all duration-200 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-500/30 ${
+          wide ? 'col-span-2' : 'col-span-1'
+        }`}
+      >
+        <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand-400 to-brand-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-brand-500 dark:to-brand-400" />
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{label}</p>
+        <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/60">
+          {isImg ? (
+            <img src={fileMeta.url} alt={fileMeta.filename || 'Uploaded file'} className="h-12 w-12 rounded-md object-cover border border-gray-200" />
+          ) : (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+              <FileText className="h-6 w-6" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{fileMeta.filename || 'Uploaded File'}</p>
+            {fileMeta.sizeBytes && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">{(fileMeta.sizeBytes / 1024).toFixed(1)} KB</p>
+            )}
+            <a
+              href={fileMeta.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >
+              Open file <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`group relative overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-5 py-4 transition-all duration-200 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-500/30 hover:-translate-y-0.5 ${wide ? 'col-span-2' : 'col-span-1'}`}
@@ -88,9 +141,6 @@ function AnswerCard({ label, value, wide }: { label: string; value: string; wide
   );
 }
 
-/* ─────────────────────────────────────────────
-   Main page
-───────────────────────────────────────────── */
 export function FormResponsesPage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const [page, setPage] = useState(1);
@@ -412,12 +462,15 @@ export function FormResponsesPage(): JSX.Element {
                           const valStr = formatValue(a.value);
                           const isLong =
                             field?.type === 'TEXT_LONG' ||
+                            a.fieldType === 'FILE_UPLOAD' ||
                             (typeof a.value === 'string' && a.value.length > 80);
                           return (
                             <AnswerCard
                               key={a.id}
                               label={field?.label ?? a.fieldId}
                               value={valStr}
+                              rawValue={a.value}
+                              fieldType={a.fieldType}
                               wide={isLong}
                             />
                           );

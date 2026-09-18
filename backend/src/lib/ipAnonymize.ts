@@ -1,7 +1,3 @@
-/**
- * GDPR-compliant IP anonymization. Never store raw IPs.
- * IPv4 → zero last octet. IPv6 → zero last 80 bits (keep /48).
- */
 import crypto from 'node:crypto';
 
 export function anonymizeIp(ip: string | undefined | null): string {

@@ -1,6 +1,3 @@
-/**
- * JWT helpers. HS256 in MVP. Payload kept minimal (userId, sessionId, plan).
- */
 import jwt, { type SignOptions, type JwtPayload } from 'jsonwebtoken';
 import { env } from '../config/env';
 import { UnauthorizedError } from './AppError';

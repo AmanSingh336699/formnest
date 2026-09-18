@@ -1,7 +1,3 @@
-/**
- * Server-side HTML sanitization for user-supplied rich content.
- * Use whenever rendering user text back into HTML contexts.
- */
 import DOMPurify from 'isomorphic-dompurify';
 
 const ALLOWED_TAGS = ['b', 'i', 'em', 'strong', 'u', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span'];
@@ -23,7 +19,6 @@ export function sanitizePlainText(input: string, maxLength = 10000): string {
     .trim();
 }
 
-/** Generate a slug-safe ascii string, 8 chars cuid-style. */
 export function slugify(input: string): string {
   return input
     .toLowerCase()

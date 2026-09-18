@@ -1,6 +1,3 @@
-/**
- * Production-safe migration runner. Run via `npm run db:migrate`.
- */
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';

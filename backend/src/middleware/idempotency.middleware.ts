@@ -1,7 +1,3 @@
-/**
- * Idempotency-Key middleware. Caches successful response bodies in Redis for 24h.
- * Apply selectively on POST/PATCH/DELETE that are unsafe to repeat.
- */
 import type { Request, Response, NextFunction } from 'express';
 import { redis } from '../config/redis';
 import { ConflictError } from '../lib/AppError';

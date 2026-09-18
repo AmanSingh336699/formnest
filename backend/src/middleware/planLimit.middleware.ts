@@ -1,7 +1,3 @@
-/**
- * Plan-based feature gating middleware.
- * Use planLimits service for count-based limits (forms, webhooks, etc.).
- */
 import type { Request, Response, NextFunction } from 'express';
 import { ForbiddenError, UnauthorizedError } from '../lib/AppError';
 import { PLAN_LIMITS } from '../lib/constants';

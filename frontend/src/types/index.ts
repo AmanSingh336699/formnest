@@ -1,8 +1,3 @@
-/**
- * Frontend-only types. Do NOT share with backend.
- * Backend contract respected via OpenAPI spec.
- */
-
 export type UserPlan = 'FREE' | 'PRO' | 'ENTERPRISE';
 export type FormStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED';
 
@@ -19,6 +14,7 @@ export type FieldType =
   | 'DATE'
   | 'RATING'
   | 'YES_NO'
+  | 'FILE_UPLOAD'
   | 'HEADING'
   | 'DIVIDER';
 

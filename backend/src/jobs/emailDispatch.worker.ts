@@ -1,6 +1,3 @@
-/**
- * Email dispatch worker. Reads from BullMQ, sends via Nodemailer transport.
- */
 import { Worker, type Job } from 'bullmq';
 import { queueRedis } from '../config/redis';
 import { logger } from '../config/logger';

@@ -1,7 +1,3 @@
-/**
- * Consistent API response envelope: { data, meta, error }
- * Exactly one of `data` or `error` is populated.
- */
 import type { Response } from 'express';
 import type { ErrorCode } from './AppError';
 

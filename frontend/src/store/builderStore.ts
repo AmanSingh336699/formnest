@@ -1,7 +1,3 @@
-/**
- * Form builder edit state. Independent of TanStack Query — represents work-in-progress.
- * Auto-save subscribes to changes and POSTs every 2s of inactivity.
- */
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Form, FormField, FormTheme, FormSettings, FieldType, FieldOption } from '../types';
@@ -81,6 +77,7 @@ function defaultLabel(type: FieldType): string {
     DATE: 'Date',
     RATING: 'Rating',
     YES_NO: 'Yes / No',
+    FILE_UPLOAD: 'File upload',
     HEADING: 'Section heading',
     DIVIDER: '',
   };

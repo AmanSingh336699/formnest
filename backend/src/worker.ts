@@ -1,6 +1,3 @@
-/**
- * Worker process entry point. Runs BullMQ workers for webhooks + emails.
- */
 import './config/env';
 import { logger } from './config/logger';
 import { startWebhookWorker } from './jobs/webhookDelivery.worker';

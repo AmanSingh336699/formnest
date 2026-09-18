@@ -1,7 +1,3 @@
-/**
- * Responses service. List, fetch, delete, mark spam.
- * Strong ownership guarantee: every query joins through forms.userId.
- */
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { responses, responseAnswers, type Response, type ResponseAnswer } from '../../../drizzle/schema/responses';

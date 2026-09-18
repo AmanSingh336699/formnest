@@ -1,7 +1,3 @@
-/**
- * Public form service: serve forms by slug, accept submissions.
- * Handles spam detection, idempotency, transactional outbox for webhooks.
- */
 import { z } from 'zod';
 import { eq, sql, and, gte } from 'drizzle-orm';
 import { db } from '../../config/database';
@@ -16,7 +12,9 @@ import {
   type FieldType,
 } from '../../../drizzle/schema/forms';
 import { users } from '../../../drizzle/schema/users';
-import { responses, responseAnswers } from '../../../drizzle/schema/responses';
+import { createId } from '@paralleldrive/cuid2';
+import { generateUploadParams, uploadBufferToCloudinary, CLOUDINARY_MAX_FILE_BYTES } from '../../config/storage';
+import { responses, responseAnswers, fileUploads } from '../../../drizzle/schema/responses';
 import { webhooks, webhookDeliveries } from '../../../drizzle/schema/webhooks';
 import { webhookQueue } from '../../config/queue';
 import { emailQueue } from '../../config/queue';
@@ -52,9 +50,6 @@ interface SubmitResult {
   branding: boolean;
 }
 
-/**
- * Build a per-field Zod validator from a FormField definition.
- */
 function buildFieldValidator(field: FormField): z.ZodTypeAny {
   const required = field.required;
   const v = field.validation;
@@ -124,6 +119,20 @@ function buildFieldValidator(field: FormField): z.ZodTypeAny {
     }
     case 'YES_NO':
       schema = z.boolean();
+      break;
+    case 'FILE_UPLOAD':
+      schema = z.union([
+        z.string(),
+        z.object({
+          fileId: z.string().optional(),
+          id: z.string().optional(),
+          publicId: z.string().optional(),
+          url: z.string().optional(),
+          name: z.string().optional(),
+          size: z.number().optional(),
+        }),
+        z.array(z.unknown()),
+      ]);
       break;
     case 'HEADING':
     case 'DIVIDER':
@@ -515,6 +524,83 @@ export const publicService = {
           value: v.value,
         })),
       },
+    };
+  },
+
+  async createUploadUrl(
+    formId: string,
+    params: { filename: string; mimeType: string; sizeBytes: number },
+  ): Promise<ReturnType<typeof generateUploadParams> & { id: string; expiresInSec: number }> {
+    const form = (await formsService.getPublicBySlug(formId)) ?? (await this.loadFormById(formId));
+    if (!form) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
+
+    const plan = await this.getOwnerPlan(form.userId);
+    const planLimit = Math.min(PLAN_LIMITS[plan].maxFileSizeBytes, CLOUDINARY_MAX_FILE_BYTES);
+
+    if (params.sizeBytes > planLimit) {
+      throw new ValidationError(`File exceeds maximum allowed size of ${Math.round(planLimit / (1024 * 1024))} MB`, {
+        maxBytes: planLimit,
+      });
+    }
+
+    const fileId = createId();
+    const folder = `formnest/uploads/${form.userId}/${form.id}`;
+    const uploadParams = generateUploadParams(folder, params.filename, fileId, planLimit);
+
+    await db.insert(fileUploads).values({
+      id: fileId,
+      userId: form.userId,
+      formId: form.id,
+      publicId: uploadParams.publicId,
+      originalName: params.filename,
+      mimeType: params.mimeType,
+      sizeBytes: params.sizeBytes,
+    });
+
+    return {
+      ...uploadParams,
+      id: fileId,
+      expiresInSec: 300,
+    };
+  },
+
+  async uploadDirect(
+    formId: string,
+    file: Express.Multer.File,
+  ): Promise<{ id: string; url: string; publicId: string; filename: string; mimeType: string; sizeBytes: number }> {
+    const form = (await formsService.getPublicBySlug(formId)) ?? (await this.loadFormById(formId));
+    if (!form) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
+
+    const plan = await this.getOwnerPlan(form.userId);
+    const planLimit = Math.min(PLAN_LIMITS[plan].maxFileSizeBytes, CLOUDINARY_MAX_FILE_BYTES);
+
+    if (file.size > planLimit) {
+      throw new ValidationError(`File exceeds maximum allowed size of ${Math.round(planLimit / (1024 * 1024))} MB`, {
+        maxBytes: planLimit,
+      });
+    }
+
+    const fileId = createId();
+    const folder = `formnest/uploads/${form.userId}/${form.id}`;
+    const uploaded = await uploadBufferToCloudinary(file.buffer, folder, file.originalname, fileId);
+
+    await db.insert(fileUploads).values({
+      id: fileId,
+      userId: form.userId,
+      formId: form.id,
+      publicId: uploaded.publicId,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+      sizeBytes: file.size,
+    });
+
+    return {
+      id: fileId,
+      url: uploaded.url,
+      publicId: uploaded.publicId,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+      sizeBytes: file.size,
     };
   },
 };

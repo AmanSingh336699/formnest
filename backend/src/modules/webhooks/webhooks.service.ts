@@ -1,7 +1,3 @@
-/**
- * Webhooks service. CRUD + test + delivery log queries.
- * Secret stored AES-GCM encrypted; never returned in plaintext after creation.
- */
 import crypto from 'node:crypto';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../config/database';

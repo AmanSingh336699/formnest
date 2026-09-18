@@ -1,6 +1,3 @@
-/**
- * Vite env exposed with type safety.
- */
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_APP_NAME: string;

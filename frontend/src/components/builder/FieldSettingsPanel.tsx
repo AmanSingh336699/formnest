@@ -33,7 +33,7 @@ export function FieldSettingsPanel(): JSX.Element {
 
   const hasChoices = field.type === 'RADIO' || field.type === 'CHECKBOX' || field.type === 'DROPDOWN';
   const isInput = field.type !== 'HEADING' && field.type !== 'DIVIDER';
-  const supportsDefaultValue = isInput && field.type !== 'CHECKBOX' && field.type !== 'RATING';
+  const supportsDefaultValue = isInput && field.type !== 'CHECKBOX' && field.type !== 'RATING' && field.type !== 'FILE_UPLOAD';
 
   return (
     <aside className="hidden h-full w-80 flex-col border-l border-gray-200 bg-white lg:flex" aria-label="Field settings">
@@ -129,6 +129,18 @@ export function FieldSettingsPanel(): JSX.Element {
                   validation: { ...field.validation, maxLength: e.target.value === '' ? undefined : Number(e.target.value) },
                 })}
               />
+            </div>
+          </div>
+        )}
+
+        {field.type === 'FILE_UPLOAD' && (
+          <div className="space-y-3 rounded-lg bg-gray-50 p-3 dark:bg-slate-800/70">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">File Settings</h3>
+            <p className="text-xs text-gray-600 dark:text-slate-300">
+              Files are directly & securely uploaded to Cloudinary.
+            </p>
+            <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300">
+              Max file size limit: <strong>10 MB</strong>
             </div>
           </div>
         )}

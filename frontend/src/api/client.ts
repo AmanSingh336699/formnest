@@ -1,6 +1,3 @@
-/**
- * Axios client with auth, refresh-token queue, request-id, error normalization.
- */
 import axios, { type AxiosInstance, AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
 import { env } from '../lib/env';

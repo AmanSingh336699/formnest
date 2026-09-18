@@ -1,6 +1,3 @@
-/**
- * API key service. Raw key shown ONCE on creation, never retrievable again.
- */
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { apiKeys } from '../../../drizzle/schema/apiKeys';

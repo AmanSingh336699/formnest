@@ -1,6 +1,3 @@
-/**
- * Analytics service. Combines DB counters with Redis daily breakdown.
- */
 import { eq, and } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { redis } from '../../config/redis';

@@ -1,7 +1,3 @@
-/**
- * Stripe billing. Checkout session creation + webhook handler.
- * Plan changes propagated to users.plan via webhook events.
- */
 import Stripe from 'stripe';
 import { eq } from 'drizzle-orm';
 import { env } from '../../config/env';

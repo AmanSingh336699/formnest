@@ -14,6 +14,7 @@ export const FIELD_TYPES = [
   'DATE',
   'RATING',
   'YES_NO',
+  'FILE_UPLOAD',
   'HEADING',
   'DIVIDER',
 ] as const;

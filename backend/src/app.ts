@@ -1,6 +1,3 @@
-/**
- * Express application composition. No listening here — that's server.ts.
- */
 import express, { type Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';

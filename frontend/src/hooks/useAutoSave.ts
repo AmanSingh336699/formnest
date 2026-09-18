@@ -1,6 +1,3 @@
-/**
- * Auto-save hook with debounce + exponential backoff retry.
- */
 import { useEffect, useRef } from 'react';
 import { useBuilderStore } from '../store/builderStore';
 import { formsApi } from '../api/services/forms.service';

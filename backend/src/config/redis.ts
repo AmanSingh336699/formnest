@@ -1,7 +1,3 @@
-/**
- * ioredis singletons.
- * Separate clients for general ops vs BullMQ (BullMQ requires its own connection settings).
- */
 import { Redis } from 'ioredis';
 import { env } from './env';
 import { logger } from './logger';
@@ -35,7 +31,7 @@ export const redis = new Redis(redisUrl, {
   },
 });
 
-/** Dedicated Redis connection for BullMQ (must have maxRetriesPerRequest = null, no commandTimeout). */
+// Dedicated Redis connection for BullMQ
 export const queueRedis = new Redis(redisUrl, baseOpts);
 
 redis.on('error', (err) => logger.error({ err }, 'Redis error'));

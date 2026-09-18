@@ -1,4 +1,4 @@
-import { Type, AlignLeft, Mail, Hash, Phone, Circle, Check, ChevronDown, Calendar, Star, ToggleRight, Heading2, Minus, LockKeyhole } from 'lucide-react';
+import { Type, AlignLeft, Mail, Hash, Phone, Circle, Check, ChevronDown, Calendar, Star, ToggleRight, Heading2, Minus, LockKeyhole, UploadCloud } from 'lucide-react';
 import type { FieldType } from '../../types';
 import { useBuilderStore } from '../../store/builderStore';
 
@@ -22,6 +22,7 @@ const PALETTE: PaletteItem[] = [
   { type: 'DATE', label: 'Date', icon: Calendar, category: 'datetime' },
   { type: 'RATING', label: 'Rating', icon: Star, category: 'special' },
   { type: 'YES_NO', label: 'Yes / No', icon: ToggleRight, category: 'special' },
+  { type: 'FILE_UPLOAD', label: 'File upload', icon: UploadCloud, category: 'special' },
   { type: 'HEADING', label: 'Heading', icon: Heading2, category: 'layout' },
   { type: 'DIVIDER', label: 'Divider', icon: Minus, category: 'layout' },
 ];

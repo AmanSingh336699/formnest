@@ -19,11 +19,10 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.0",
-    "@aws-sdk/client-s3": "^3.654.0",
-    "@aws-sdk/s3-request-presigner": "^3.654.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.13.0",
+    "cloudinary": "^2.11.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",

@@ -1,7 +1,3 @@
-/**
- * Pagination helpers. Cursor-based (preferred) and offset-based.
- * Cursor encodes (createdAt, id) for stable ordering.
- */
 import { Buffer } from 'node:buffer';
 
 export interface CursorPayload {

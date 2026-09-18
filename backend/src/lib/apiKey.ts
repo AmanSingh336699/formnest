@@ -1,8 +1,3 @@
-/**
- * API key generation, hashing, and verification.
- * Format: fn_<32-byte-random-base62>
- * Stored as sha256(rawKey + pepper). Never reversible.
- */
 import crypto from 'node:crypto';
 import { env } from '../config/env';
 

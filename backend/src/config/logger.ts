@@ -1,7 +1,3 @@
-/**
- * Pino structured logger with request-id correlation and PII redaction.
- * Never use console.log anywhere in this codebase.
- */
 import pino from 'pino';
 import { env, isDev } from './env';
 

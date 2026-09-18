@@ -1,6 +1,3 @@
-/**
- * Synchronous CSV export. ≤2000 rows. UTF-8 with BOM for Excel.
- */
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { forms, formFields, type FormField } from '../../../drizzle/schema/forms';

@@ -1,7 +1,3 @@
-/**
- * Bcrypt password helpers + complexity validation.
- * Constant-time comparison via bcrypt's native compare.
- */
 import bcrypt from 'bcrypt';
 import { env } from '../config/env';
 
@@ -15,10 +11,6 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcrypt.compare(plain, hash);
 }
 
-/**
- * Returns null if password is acceptable, else a human-readable reason.
- * Rules: ≥10 chars and must contain 3 of {upper, lower, digit, symbol}.
- */
 export function validatePasswordComplexity(plain: string): string | null {
   if (plain.length < MIN_LENGTH) {
     return `Password must be at least ${MIN_LENGTH} characters long.`;

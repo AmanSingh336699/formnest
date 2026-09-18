@@ -1,8 +1,3 @@
-/**
- * Typed application error hierarchy. Every thrown error MUST be one of these.
- * Generic `Error` only escapes to 500 path in middleware.
- */
-
 export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNAUTHORIZED'

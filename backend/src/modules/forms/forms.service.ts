@@ -1,7 +1,3 @@
-/**
- * Forms service. All form CRUD, publish, duplicate operations.
- * Enforces plan limits via planLimits service.
- */
 import { eq, and, desc, sql, ilike, or } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { db } from '../../config/database';

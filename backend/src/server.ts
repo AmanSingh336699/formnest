@@ -1,6 +1,3 @@
-/**
- * HTTP server entry point. Handles graceful shutdown.
- */
 import { createServer } from 'node:http';
 import { createApp } from './app';
 import { env } from './config/env';

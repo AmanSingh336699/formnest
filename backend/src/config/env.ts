@@ -1,7 +1,3 @@
-/**
- * Environment validation. Fails-fast on boot if anything is missing/invalid.
- * Imported once at startup from server.ts / worker.ts.
- */
 import 'dotenv/config';
 import { z } from 'zod';
 
@@ -37,12 +33,9 @@ const envSchema = z.object({
   MAX_FILE_SIZE_FREE: z.coerce.number().int().positive().default(5_242_880),
   MAX_FILE_SIZE_PRO: z.coerce.number().int().positive().default(52_428_800),
 
-  S3_ENDPOINT: z.string().url(),
-  S3_REGION: z.string().default('auto'),
-  S3_BUCKET: z.string(),
-  S3_ACCESS_KEY: z.string(),
-  S3_SECRET_KEY: z.string(),
-  S3_PUBLIC_URL: z.string().url(),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1),
+  CLOUDINARY_API_KEY: z.string().min(1),
+  CLOUDINARY_API_SECRET: z.string().min(1),
 
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

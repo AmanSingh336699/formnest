@@ -1,7 +1,3 @@
-/**
- * Random opaque token generation + sha256 hashing.
- * Used for: email verification, password reset, team invitations, refresh tokens.
- */
 import crypto from 'node:crypto';
 
 export interface OpaqueToken {

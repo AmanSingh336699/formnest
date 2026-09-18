@@ -1,6 +1,3 @@
-/**
- * Teams service. Single team per user MVP. Email-based invitations.
- */
 import { eq, and, or, isNull } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { teams, teamMembers, type Team, type TeamMember } from '../../../drizzle/schema/teams';

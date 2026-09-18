@@ -1,10 +1,3 @@
-/**
- * Webhook delivery worker. Reads from BullMQ, dispatches HTTP POST with HMAC signature.
- * Updates webhook_deliveries row + handles retry scheduling + auto-disable.
- *
- * Retry strategy: WEBHOOK_CONFIG.retryDelaysSec
- * Auto-disable: after WEBHOOK_CONFIG.autoDisableAfterConsecutiveFailures consecutive failures.
- */
 import { Worker, type Job } from 'bullmq';
 import { eq, sql } from 'drizzle-orm';
 import { db } from '../config/database';

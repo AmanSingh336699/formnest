@@ -1,8 +1,3 @@
-/**
- * Authentication service. All business logic lives here; controllers stay thin.
- * Handles registration, login (with timing-attack mitigation), refresh rotation,
- * email verification, password reset.
- */
 import crypto from "node:crypto";
 import { eq, and, isNull, gt } from "drizzle-orm";
 import { db } from "../../config/database";

@@ -54,7 +54,7 @@ export const fileUploads = pgTable(
     responseId: text('response_id').references(() => responses.id, { onDelete: 'cascade' }),
     userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     formId: text('form_id').notNull().references(() => forms.id, { onDelete: 'cascade' }),
-    s3Key: text('s3_key').notNull(),
+    publicId: text('s3_key').notNull(),
     originalName: text('original_name').notNull(),
     mimeType: text('mime_type').notNull(),
     sizeBytes: integer('size_bytes').notNull(),

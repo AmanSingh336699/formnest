@@ -28,6 +28,7 @@ export const fieldTypeEnum = pgEnum('field_type', [
   'DATE',
   'RATING',
   'YES_NO',
+  'FILE_UPLOAD',
   'HEADING',
   'DIVIDER',
 ]);

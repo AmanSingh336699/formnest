@@ -1,7 +1,3 @@
-/**
- * Nodemailer transport + Handlebars template rendering.
- * Provider-agnostic via SMTP. Switch to Resend SDK in Phase 2 if needed.
- */
 import nodemailer, { type Transporter } from 'nodemailer';
 import Handlebars from 'handlebars';
 import fs from 'node:fs';

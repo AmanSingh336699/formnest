@@ -1,4 +1,3 @@
-/** Centralized path constants — change paths in one place. */
 export const ENDPOINTS = {
   auth: {
     register: '/auth/register',

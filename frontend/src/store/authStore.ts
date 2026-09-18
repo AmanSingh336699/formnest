@@ -1,6 +1,3 @@
-/**
- * Auth store — access token in memory only (NOT localStorage), user info persisted.
- */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '../types';

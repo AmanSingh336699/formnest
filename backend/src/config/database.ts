@@ -1,7 +1,3 @@
-/**
- * Drizzle ORM singleton with postgres.js driver.
- * Connection pool sized for typical Node API workload.
- */
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env, isProd } from './env';

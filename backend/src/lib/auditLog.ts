@@ -1,6 +1,3 @@
-/**
- * Audit log helper. Use for every create/update/delete on sensitive entities.
- */
 import { db } from '../config/database';
 import { auditLogs, type AuditAction } from '../../drizzle/schema/auditLogs';
 import { hashIp } from './ipAnonymize';
