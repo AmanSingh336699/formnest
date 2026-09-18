@@ -1,13 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Key, User, CreditCard, Webhook, BookOpen } from 'lucide-react';
+import { LayoutDashboard, FileText, User, CreditCard } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 const NAV = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/dashboard/forms', label: 'Forms', icon: FileText },
-  { to: '/developer/api-keys', label: 'API Keys', icon: Key },
-  { to: '/developer/webhooks', label: 'Webhooks', icon: Webhook },
-  { to: '/developer/api-docs', label: 'API Docs', icon: BookOpen },
   { to: '/account/profile', label: 'Profile', icon: User },
   { to: '/account/billing', label: 'Billing', icon: CreditCard },
 ];

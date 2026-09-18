@@ -8,14 +8,8 @@ import {
   SuspendUserSchema,
   UnsuspendUserSchema,
   VerifyEmailSchema,
-  RevokeApiKeySchema,
-  DisableWebhookSchema,
   UserIdParamsSchema,
-  KeyIdParamsSchema,
-  WebhookIdParamsSchema,
   ListFormsQuerySchema,
-  ListApiKeysQuerySchema,
-  ListWebhooksQuerySchema,
 } from './admin.validators';
 
 const router = Router();
@@ -77,34 +71,6 @@ router.get(
   adminController.getUserForms,
 );
 
-router.get(
-  '/users/:userId/api-keys',
-  validate({ params: UserIdParamsSchema }),
-  adminController.getUserApiKeys,
-);
-
-router.get(
-  '/users/:userId/webhooks',
-  validate({ params: UserIdParamsSchema }),
-  adminController.getUserWebhooks,
-);
-
 router.get('/forms', validate({ query: ListFormsQuerySchema }), adminController.listForms);
-
-router.get('/api-keys', validate({ query: ListApiKeysQuerySchema }), adminController.listApiKeys);
-
-router.get('/webhooks/failed', validate({ query: ListWebhooksQuerySchema }), adminController.listFailedWebhooks);
-
-router.post(
-  '/api-keys/:keyId/revoke',
-  validate({ params: KeyIdParamsSchema, body: RevokeApiKeySchema }),
-  adminController.revokeApiKey,
-);
-
-router.post(
-  '/webhooks/:webhookId/disable',
-  validate({ params: WebhookIdParamsSchema, body: DisableWebhookSchema }),
-  adminController.disableWebhook,
-);
 
 export { router as adminRoutes };

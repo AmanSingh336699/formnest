@@ -17,9 +17,6 @@ import { FormResponsesPage } from './pages/dashboard/FormResponses';
 import { FormAnalyticsPage } from './pages/dashboard/FormAnalytics';
 import { FormSharePage } from './pages/dashboard/FormShare';
 import { FormSettingsPage } from './pages/dashboard/FormSettings';
-import { ApiKeysPage } from './pages/developer/ApiKeys';
-import { WebhooksPage } from './pages/developer/Webhooks';
-import { ApiDocsPage } from './pages/developer/ApiDocs';
 import { ProfilePage } from './pages/account/Profile';
 import { BillingPage } from './pages/account/Billing';
 import { DangerZonePage } from './pages/account/DangerZone';
@@ -32,8 +29,6 @@ import AdminDashboardPage from './pages/admin/Dashboard';
 import AdminUsersListPage from './pages/admin/UsersList';
 import AdminUserDetailPage from './pages/admin/UserDetail';
 import AdminFormsListPage from './pages/admin/FormsList';
-import AdminApiKeysPage from './pages/admin/ApiKeysList';
-import AdminWebhooksPage from './pages/admin/WebhooksList';
 
 export const router = createBrowserRouter([
   // Marketing
@@ -71,9 +66,6 @@ export const router = createBrowserRouter([
       { path: '/dashboard/forms/:id/analytics', element: <FormAnalyticsPage /> },
       { path: '/dashboard/forms/:id/share', element: <FormSharePage /> },
       { path: '/dashboard/forms/:id/settings', element: <FormSettingsPage /> },
-      { path: '/developer/api-keys', element: <ApiKeysPage /> },
-      { path: '/developer/webhooks', element: <WebhooksPage /> },
-      { path: '/developer/api-docs', element: <ApiDocsPage /> },
       { path: '/account/profile', element: <ProfilePage /> },
       { path: '/account/billing', element: <BillingPage /> },
       { path: '/account/danger', element: <DangerZonePage /> },
@@ -104,8 +96,6 @@ export const router = createBrowserRouter([
       { path: '/admin/users', element: <AdminUsersListPage /> },
       { path: '/admin/users/:userId', element: <AdminUserDetailPage /> },
       { path: '/admin/forms', element: <AdminFormsListPage /> },
-      { path: '/admin/api-keys', element: <AdminApiKeysPage /> },
-      { path: '/admin/webhooks', element: <AdminWebhooksPage /> },
     ],
   },
 

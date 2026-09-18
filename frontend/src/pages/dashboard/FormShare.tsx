@@ -1,195 +1,161 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Code2, Copy, Database, Send, Webhook } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, Globe, Inbox, Share2, Sparkles } from 'lucide-react';
 import { formsApi } from '../../api/services/forms.service';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { env } from '../../lib/env';
-import { buildAutoResizeEmbedSnippet, buildEmbedUrl } from '../../lib/embed';
 
 export function FormSharePage(): JSX.Element {
   const { id } = useParams<{ id: string }>();
-  const { data: form, isLoading } = useQuery({ queryKey: ['form', id], queryFn: () => formsApi.get(id as string), enabled: !!id });
+  const { data: form, isLoading } = useQuery({
+    queryKey: ['form', id],
+    queryFn: () => formsApi.get(id as string),
+    enabled: !!id,
+  });
   const { copy } = useCopyToClipboard();
 
   const slug = form?.customSlug ?? form?.slug ?? '';
   const publicUrl = `${env.appUrl}/f/${slug}`;
-  const embedTheme = form?.theme
-    ? {
-        backgroundColor: form.theme.backgroundColor,
-        textColor: form.theme.textColor,
-        primaryColor: form.theme.primaryColor,
-        buttonColor: form.theme.buttonColor,
-        fontFamily: form.theme.fontFamily,
-        borderRadius: form.theme.borderRadius,
-      }
-    : null;
-  const embedUrl = slug ? buildEmbedUrl(publicUrl, embedTheme) : '';
-  const embedSnippet = slug ? buildAutoResizeEmbedSnippet({ slug, publicUrl, theme: embedTheme }) : '';
-  const reactSnippet = `import { useEffect, useRef } from 'react';
-
-export function FormNestEmbed() {
-  const iframeRef = useRef(null);
-
-  useEffect(() => {
-    function onMessage(event) {
-      if (event.source !== iframeRef.current?.contentWindow) return;
-      if (event.data?.type !== 'formnest:resize' || event.data.slug !== '${slug}') return;
-      iframeRef.current.style.height = Math.max(320, Number(event.data.height || 0)) + 'px';
-    }
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, []);
 
   return (
-    <iframe
-      ref={iframeRef}
-      src="${embedUrl}"
-      title="FormNest form"
-      style={{ width: '100%', minHeight: 480, border: 0, display: 'block' }}
-      loading="lazy"
-    />
-  );
-}`;
-  const submitSnippet = `await fetch('${env.apiUrl}/public/forms/${form?.id ?? ':formId'}/submit', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Idempotency-Key': crypto.randomUUID(),
-  },
-  body: JSON.stringify({
-    answers: {
-      field_id_here: 'customer@example.com',
-    },
-    loadedAt: Date.now() - 5000,
-    submittedAt: Date.now(),
-    referrer: window.location.href,
-  }),
-});`;
-  const responseSnippet = `curl '${env.apiUrl}/forms/${form?.id ?? ':formId'}/responses?limit=25' \\
-  -H 'Authorization: Bearer fn_your_api_key'`;
+    <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            to={`/dashboard/forms/${id}`}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+              Share "{form?.title ?? '...'}"
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Get the link and start collecting responses instantly
+            </p>
+          </div>
+        </div>
 
-  return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8">
-      <div className="mb-6 flex items-center gap-3">
-        <Link to={`/dashboard/forms/${id}`} className="rounded-md p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800"><ArrowLeft className="h-4 w-4" /></Link>
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Share "{form?.title ?? '...'}"</h1>
+        {slug && (
+          <a
+            href={publicUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex"
+          >
+            <Button variant="outline" rightIcon={<ExternalLink className="h-4 w-4" />}>
+              Open Form Live
+            </Button>
+          </a>
+        )}
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+        <Card className="p-8 text-center text-slate-500 dark:text-slate-400">Loading form details...</Card>
       ) : (
-        <>
-          <Card className="mb-4">
-            <h2 className="mb-3 text-base font-semibold text-gray-900 dark:text-slate-100">Hosted form URL</h2>
-            <div className="flex items-center gap-2">
+        <div className="space-y-6">
+          {/* Main Share Link Card */}
+          <Card className="border-brand-200 dark:border-brand-500/30 bg-gradient-to-br from-white to-brand-50/30 dark:from-slate-900 dark:to-slate-900/80 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <Globe className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+              <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                Public Form URL
+              </h2>
+            </div>
+            <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+              Copy this link and share it anywhere. Anyone with this link can fill and submit your form.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <input
                 readOnly
                 value={publicUrl}
-                className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-sm text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm text-slate-800 shadow-inner focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
               />
-              <Button leftIcon={<Copy className="h-4 w-4" />} onClick={() => copy(publicUrl, 'Link copied')}>Copy</Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  leftIcon={<Copy className="h-4 w-4" />}
+                  onClick={() => copy(publicUrl, 'Link copied to clipboard!')}
+                  className="flex-1 sm:flex-none"
+                >
+                  Copy Link
+                </Button>
+                <a
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sm:hidden flex-1"
+                >
+                  <Button variant="outline" fullWidth rightIcon={<ExternalLink className="h-4 w-4" />}>
+                    Open
+                  </Button>
+                </a>
+              </div>
             </div>
-            <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs text-brand-600 hover:underline dark:text-brand-300">
-              Open in new tab
-            </a>
           </Card>
 
-          <Card className="mb-4">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">Responsive embed</h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                  Drop this into any app. It auto-resizes and carries safe theme overrides in the URL.
+          {/* Step-by-Step Instructions Guide */}
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                How to collect & test responses
+              </h2>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-900/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold text-sm mb-3">
+                  1
+                </div>
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Share2 className="h-4 w-4 text-indigo-500" />
+                  Share the Link
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Send your link via Email, WhatsApp, Social Media, or add it to your website or bio.
                 </p>
               </div>
-              <Button variant="outline" leftIcon={<Copy className="h-4 w-4" />} onClick={() => copy(embedSnippet, 'Snippet copied')}>
-                Copy
-              </Button>
+
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-900/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold text-sm mb-3">
+                  2
+                </div>
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <ExternalLink className="h-4 w-4 text-emerald-500" />
+                  Test Live Form
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Click "Open Form Live" to open a new tab and submit a test entry yourself.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-900/40">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 font-bold text-sm mb-3">
+                  3
+                </div>
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Inbox className="h-4 w-4 text-blue-500" />
+                  View Responses
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  All submitted answers and uploaded files will appear immediately in your form's Responses tab.
+                </p>
+              </div>
             </div>
-            <textarea
-              readOnly
-              rows={8}
-              value={embedSnippet}
-              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-            />
-            <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-              Supported URL overrides: backgroundColor, textColor, primaryColor, buttonColor, fontFamily, borderRadius.
-            </p>
-          </Card>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <div className="mb-3 flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-brand-600 dark:text-brand-300" />
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">React embed</h2>
-              </div>
-              <textarea
-                readOnly
-                rows={14}
-                value={reactSnippet}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-              />
-              <Button className="mt-2" variant="outline" leftIcon={<Copy className="h-4 w-4" />} onClick={() => copy(reactSnippet, 'React snippet copied')}>
-                Copy React
-              </Button>
-            </Card>
-
-            <Card>
-              <div className="mb-3 flex items-center gap-2">
-                <Send className="h-4 w-4 text-brand-600 dark:text-brand-300" />
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">Headless submit</h2>
-              </div>
-              <p className="mb-3 text-sm text-gray-500 dark:text-slate-400">
-                Use your own UI and post answers directly to FormNest. Field keys are the field ids from the builder/API.
-              </p>
-              <textarea
-                readOnly
-                rows={13}
-                value={submitSnippet}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-              />
-              <Button className="mt-2" variant="outline" leftIcon={<Copy className="h-4 w-4" />} onClick={() => copy(submitSnippet, 'Submit example copied')}>
-                Copy submit
-              </Button>
-            </Card>
-
-            <Card>
-              <div className="mb-3 flex items-center gap-2">
-                <Webhook className="h-4 w-4 text-brand-600 dark:text-brand-300" />
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">Send data to your DB</h2>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-slate-400">
-                FormNest stores the canonical response, then sends signed response.created webhooks. Point a webhook at your backend and write the payload into your database.
-              </p>
-              <Link to="/developer/webhooks" className="mt-3 inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-300">
-                Configure webhooks
-              </Link>
-            </Card>
-
-            <Card>
-              <div className="mb-3 flex items-center gap-2">
-                <Database className="h-4 w-4 text-brand-600 dark:text-brand-300" />
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">Fetch responses later</h2>
-              </div>
-              <textarea
-                readOnly
-                rows={4}
-                value={responseSnippet}
-                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-              />
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button variant="outline" leftIcon={<Copy className="h-4 w-4" />} onClick={() => copy(responseSnippet, 'Response API example copied')}>
-                  Copy API
+            <div className="mt-6 flex justify-end">
+              <Link to={`/dashboard/forms/${id}/responses`}>
+                <Button variant="ghost" size="sm" rightIcon={<Inbox className="h-4 w-4" />}>
+                  Go to Form Responses
                 </Button>
-                <Link to="/developer/api-keys" className="inline-flex h-10 items-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">
-                  Manage API keys
-                </Link>
-              </div>
-            </Card>
-          </div>
-        </>
+              </Link>
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );

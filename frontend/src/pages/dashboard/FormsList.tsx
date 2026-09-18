@@ -136,7 +136,7 @@ export function FormsListPage(): JSX.Element {
         open={!!deleteId}
         onOpenChange={(o) => { if (!o) setDeleteId(null); }}
         title="Delete form?"
-        description="All responses and webhooks will be permanently deleted. This action cannot be undone."
+        description="All responses for this form will be permanently deleted. This action cannot be undone."
         confirmLabel="Delete form"
         destructive
         loading={deleteMutation.isPending}

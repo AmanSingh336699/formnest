@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Key, Webhook, ArrowLeft, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, ArrowLeft, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUiStore } from '../../store/uiStore';
 import { authApi } from '../../api/services/auth.service';
@@ -10,8 +10,6 @@ const ADMIN_NAV = [
   { to: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/users', label: 'Users & Accounts', icon: Users },
   { to: '/admin/forms', label: 'All Forms', icon: FileText },
-  { to: '/admin/api-keys', label: 'API Keys', icon: Key },
-  { to: '/admin/webhooks', label: 'Webhook Deliveries', icon: Webhook },
 ];
 
 export function AdminShell(): JSX.Element {

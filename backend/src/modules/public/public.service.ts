@@ -15,8 +15,6 @@ import { users } from '../../../drizzle/schema/users';
 import { createId } from '@paralleldrive/cuid2';
 import { generateUploadParams, uploadBufferToCloudinary, CLOUDINARY_MAX_FILE_BYTES } from '../../config/storage';
 import { responses, responseAnswers, fileUploads } from '../../../drizzle/schema/responses';
-import { webhooks, webhookDeliveries } from '../../../drizzle/schema/webhooks';
-import { webhookQueue } from '../../config/queue';
 import { emailQueue } from '../../config/queue';
 import { NotFoundError, ValidationError, ForbiddenError } from '../../lib/AppError';
 import { hashIp } from '../../lib/ipAnonymize';
@@ -150,11 +148,7 @@ function buildFieldValidator(field: FormField): z.ZodTypeAny {
   return schema;
 }
 
-function getMonthlyResponseKey(userId: string): string {
-  const now = new Date();
-  const yyyymm = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
-  return `quota:responses:${userId}:${yyyymm}`;
-}
+
 
 export const publicService = {
   async getPublicForm(slug: string): Promise<Form & { fields: FormField[] }> {
@@ -219,17 +213,7 @@ export const publicService = {
       );
     }
 
-    // 3. Plan-level monthly quota
-    const quotaKey = getMonthlyResponseKey(form.userId);
-    const plan = await this.getOwnerPlan(form.userId);
-    const currentMonthly = await this.getMonthlyResponseCount(form.userId, quotaKey);
-    const monthlyLimit = PLAN_LIMITS[plan].maxResponsesPerMonth;
-    if (currentMonthly >= monthlyLimit) {
-      throw new ForbiddenError(
-        'The owner of this form has reached their monthly response quota',
-        'RESPONSE_LIMIT_REACHED',
-      );
-    }
+
 
     // 4. Spam: honeypot
     let isSpam = false;
@@ -288,59 +272,13 @@ export const publicService = {
           })
           .where(eq(forms.id, form.id));
       }
-
-      // Outbox: enqueue webhook deliveries inside the same transaction
-      const activeWebhooks = await tx
-        .select()
-        .from(webhooks)
-        .where(and(eq(webhooks.formId, form.id), eq(webhooks.isActive, true)));
-
-      const queuedDeliveries: Array<{ deliveryId: string; webhookId: string }> = [];
-      if (!isSpam && activeWebhooks.length > 0) {
-        const payload = this.buildResponsePayload(response.id, form, validated);
-        for (const wh of activeWebhooks) {
-          if (!wh.events.includes('response.created')) continue;
-          const [delivery] = await tx
-            .insert(webhookDeliveries)
-            .values({
-              webhookId: wh.id,
-              responseId: response.id,
-              eventType: 'response.created',
-              payload,
-              status: 'PENDING',
-              attempt: 1,
-              nextRetryAt: new Date(),
-            })
-            .returning({ id: webhookDeliveries.id });
-          if (delivery) queuedDeliveries.push({ deliveryId: delivery.id, webhookId: wh.id });
-        }
-      }
-
-      return { response, queuedDeliveries };
+      return { response };
     });
 
-    // Update monthly counter (best effort)
     if (!isSpam) {
-      await safeRedisWrite('quota:responses:incr', () => redis.incr(quotaKey));
-      await safeRedisWrite('quota:responses:expire', () => redis.expire(quotaKey, 35 * 24 * 60 * 60));
-
       const dayKey = `analytics:${form.id}:${new Date().toISOString().slice(0, 10)}:completions`;
       await safeRedisWrite('analytics:completions:incr', () => redis.incr(dayKey));
       await safeRedisWrite('analytics:completions:expire', () => redis.expire(dayKey, 8 * 24 * 60 * 60));
-    }
-
-    // Enqueue webhook jobs (outside transaction)
-    for (const d of result.queuedDeliveries) {
-      await webhookQueue
-        .add('deliver', {
-          deliveryId: d.deliveryId,
-          webhookId: d.webhookId,
-          responseId: result.response.id,
-          eventType: 'response.created',
-          payload: { ref: d.deliveryId },
-          attempt: 1,
-        })
-        .catch((err: unknown) => logger.warn({ err, deliveryId: d.deliveryId }, 'Webhook queue unavailable'));
     }
 
     // Enqueue email notification if configured
@@ -365,7 +303,7 @@ export const publicService = {
       responseId: result.response.id,
       redirectUrl: form.settings?.redirectUrl ?? null,
       successMessage: form.settings?.successMessage ?? null,
-      branding: !PLAN_LIMITS[plan].removeBranding,
+      branding: false,
     };
   },
 

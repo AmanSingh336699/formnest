@@ -1,19 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { ArrowRight, Zap, Code, Webhook, BarChart2 } from 'lucide-react';
+import { ArrowRight, Zap, Code, BarChart2 } from 'lucide-react';
 
 const FEATURES = [
-  { icon: Zap, title: 'Drag-Drop Builder', desc: '13 field types, instant preview, auto-save. Build a form in under 5 minutes.' },
-  { icon: Code, title: 'Powerful API', desc: 'OpenAPI 3.1 spec, cursor pagination, idempotency keys. Built for developers.' },
-  { icon: Webhook, title: 'HMAC Webhooks', desc: 'Stripe-style signatures, retries with jitter, replay logs.' },
-  { icon: BarChart2, title: 'Analytics', desc: 'Views, starts, completion rates - privacy-first, no third-party trackers.' },
+  { icon: Zap, title: 'Form Builder', desc: '14 field types including file uploads, instant preview, auto-save. Build a form in under 5 minutes.' },
+  { icon: Code, title: 'Developer API', desc: 'REST API with API key authentication for direct form submissions and response retrieval.' },
+  { icon: BarChart2, title: 'Analytics', desc: 'Views, starts, completion rates - privacy-first analytics for all your forms.' },
 ];
 
 const FAQ = [
-  { q: 'Is there a free plan?', a: 'Yes. 5 forms, 100 responses/month, no credit card required. Free forever.' },
-  { q: 'Can I embed forms on my site?', a: 'Yes - iframe embed with automatic resizing. One snippet, drop it anywhere.' },
-  { q: 'How are responses delivered?', a: 'View in your dashboard, export CSV, or pipe to your stack via webhooks and REST API.' },
-  { q: 'Is my data secure?', a: 'GDPR-compliant. IPs anonymized at write. Bcrypt password hashing. HMAC-signed webhooks.' },
+  { q: 'Is there a free plan?', a: 'Yes. Up to 5 forms, no credit card required. Free forever.' },
+  { q: 'How are responses delivered?', a: 'View in your dashboard, export CSV, or retrieve via our REST API.' },
+  { q: 'Is my data secure?', a: 'GDPR-compliant. Anonymized IPs. Secure Cloudinary storage for file uploads.' },
 ];
 
 export function LandingPage(): JSX.Element {
@@ -26,7 +24,7 @@ export function LandingPage(): JSX.Element {
             <span className="text-brand-600 dark:text-brand-300">Collect responses forever.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 dark:text-slate-300">
-            FormNest combines polished form building, developer-friendly APIs, HMAC webhooks, and response analytics in one production-ready platform.
+            FormNest combines polished form building, file upload support, developer APIs, and response analytics in one production-ready platform.
           </p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
             <Link to="/register">
@@ -42,7 +40,7 @@ export function LandingPage(): JSX.Element {
       <section className="bg-white px-6 py-16 dark:bg-slate-950">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white">Everything you need to collect responses</h2>
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
             {FEATURES.map((f) => (
               <div key={f.title} className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:border-brand-200 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-500/40">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-500/15">

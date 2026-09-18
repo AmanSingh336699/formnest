@@ -3,7 +3,6 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { logger } from './config/logger';
@@ -22,12 +21,7 @@ import {
   responseFormSubRoutes,
   responseSingleRoutes,
 } from './modules/responses/responses.routes';
-import {
-  webhookFormSubRoutes,
-  webhookSingleRoutes,
-} from './modules/webhooks/webhooks.routes';
 import { publicRoutes } from './modules/public/public.routes';
-import { apiKeysRoutes } from './modules/apiKeys/apiKeys.routes';
 import { usersRoutes } from './modules/users/users.routes';
 import { analyticsRoutes } from './modules/analytics/analytics.routes';
 import { exportsRoutes } from './modules/exports/exports.routes';
@@ -35,8 +29,6 @@ import { teamsRoutes } from './modules/teams/teams.routes';
 import { billingRoutes, billingWebhookRoutes } from './modules/billing/billing.routes';
 import { filesRoutes } from './modules/notifications/files.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
-
-import { generateOpenApiDocument } from './openapi/registry';
 import { success } from './lib/responseFormatter';
 
 export function createApp(): Application {
@@ -84,14 +76,6 @@ export function createApp(): Application {
 
   app.get('/version', (_req, res) => res.json({ version: '1.0.0', env: env.NODE_ENV }));
 
-  app.get('/api/v1/openapi.json', (_req, res) => {
-    res.json(generateOpenApiDocument());
-  });
-  
-  app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApiDocument(), {
-    customSiteTitle: "FormNest API Documentation",
-  }));
-
   // Public (unauthenticated)
   app.use('/api/v1/public', publicRoutes);
 
@@ -103,12 +87,9 @@ export function createApp(): Application {
 
   app.use('/api/v1/forms', formsRoutes);
   app.use('/api/v1/forms', responseFormSubRoutes);
-  app.use('/api/v1/forms', webhookFormSubRoutes);
   app.use('/api/v1', exportsRoutes);
   app.use('/api/v1', analyticsRoutes);
   app.use('/api/v1/responses', responseSingleRoutes);
-  app.use('/api/v1/webhooks', webhookSingleRoutes);
-  app.use('/api/v1/api-keys', apiKeysRoutes);
   app.use('/api/v1/me', usersRoutes);
   app.use('/api/v1/teams', teamsRoutes);
   app.use('/api/v1/billing', billingRoutes);

@@ -273,10 +273,10 @@ export interface AdminUserDetail {
   user: AdminUserRow;
   formsCount: number;
   apiKeysCount: number;
-  webhooksCount: number;
+  webhooksCount?: number;
   forms: FormSummary[];
   apiKeys: Omit<ApiKeyRow, 'canReveal'>[];
-  webhooks: WebhookRow[];
+  webhooks?: WebhookRow[];
 }
 
 export interface AdminFormRow {

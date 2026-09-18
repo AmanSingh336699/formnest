@@ -7,7 +7,7 @@ const PLANS = [
     name: 'Free',
     price: 0,
     description: 'For personal projects',
-    features: ['5 forms', '100 responses/month', '1 webhook per form', '1 API key', 'CSV export', 'Community support'],
+    features: ['Up to 5 forms'],
     cta: 'Start free',
     highlighted: false,
   },
@@ -15,15 +15,15 @@ const PLANS = [
     name: 'Pro',
     price: 12,
     description: 'For growing teams',
-    features: ['Unlimited forms', '10,000 responses/month', '5 webhooks per form', '5 API keys', 'Remove branding', 'Custom slugs', 'Priority support'],
+    features: ['Up to 50 forms'],
     cta: 'Start Pro',
     highlighted: true,
   },
   {
     name: 'Enterprise',
     price: 49,
-    description: 'For serious operations',
-    features: ['Unlimited everything', 'Team (10 seats)', 'Dedicated support', '99.9% SLA', 'Annual DPA', 'White-label'],
+    description: 'For large operations',
+    features: ['Up to 1,000 forms'],
     cta: 'Contact sales',
     highlighted: false,
   },
@@ -35,7 +35,7 @@ export function PricingPage(): JSX.Element {
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Simple, transparent pricing</h1>
-          <p className="mt-3 text-lg text-gray-600 dark:text-slate-300">Start free. Upgrade when you outgrow it.</p>
+          <p className="mt-3 text-lg text-gray-600 dark:text-slate-300">Choose the plan that fits your form creation needs.</p>
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">

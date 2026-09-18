@@ -29,39 +29,11 @@ export const VerifyEmailSchema = z.object({
   reason: z.string().min(1, 'Reason is required'),
 });
 
-export const RevokeApiKeySchema = z.object({
-  reason: z.string().min(1, 'Reason is required'),
-});
-
-export const DisableWebhookSchema = z.object({
-  reason: z.string().min(1, 'Reason is required'),
-});
-
 export const UserIdParamsSchema = z.object({
   userId: z.string().min(1),
 });
 
-export const KeyIdParamsSchema = z.object({
-  keyId: z.string().min(1),
-});
-
-export const WebhookIdParamsSchema = z.object({
-  webhookId: z.string().min(1),
-});
-
 export const ListFormsQuerySchema = z.object({
-  search: z.string().optional(),
-  page: z.preprocess((val) => (val ? parseInt(val as string, 10) : 1), z.number().int().min(1).default(1)),
-  limit: z.preprocess((val) => (val ? parseInt(val as string, 10) : 20), z.number().int().min(1).max(100).default(20)),
-});
-
-export const ListApiKeysQuerySchema = z.object({
-  search: z.string().optional(),
-  page: z.preprocess((val) => (val ? parseInt(val as string, 10) : 1), z.number().int().min(1).default(1)),
-  limit: z.preprocess((val) => (val ? parseInt(val as string, 10) : 20), z.number().int().min(1).max(100).default(20)),
-});
-
-export const ListWebhooksQuerySchema = z.object({
   search: z.string().optional(),
   page: z.preprocess((val) => (val ? parseInt(val as string, 10) : 1), z.number().int().min(1).default(1)),
   limit: z.preprocess((val) => (val ? parseInt(val as string, 10) : 20), z.number().int().min(1).max(100).default(20)),

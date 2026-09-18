@@ -28,7 +28,7 @@ export function DangerZonePage(): JSX.Element {
       <Card className="border-red-200">
         <h2 className="text-base font-semibold text-red-600">Delete account</h2>
         <p className="mt-2 text-sm text-gray-600">
-          Permanently delete your account, all your forms, responses, webhooks, and API keys. This action cannot be undone.
+          Permanently delete your account, all your forms, responses, and API keys. This action cannot be undone.
         </p>
         <Button className="mt-4" variant="danger" onClick={() => setConfirmOpen(true)}>Delete my account</Button>
       </Card>

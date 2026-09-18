@@ -7,10 +7,8 @@ import type {
   AdminUserDetail,
   AdminFormRow,
   AdminApiKeyRow,
-  AdminWebhookRow,
   FormSummary,
   ApiKeyRow,
-  WebhookRow,
 } from '../../types';
 
 export interface AdminUserListParams {
@@ -93,11 +91,6 @@ export const adminApi = {
     return data.data ?? [];
   },
 
-  async getUserWebhooks(userId: string): Promise<WebhookRow[]> {
-    const { data } = await api.get<ApiEnvelope<WebhookRow[]>>(ENDPOINTS.admin.userWebhooks(userId));
-    return data.data ?? [];
-  },
-
   async listForms(params: { search?: string; page?: number; limit?: number } = {}): Promise<{ items: AdminFormRow[]; total: number }> {
     const { data } = await api.get<{ data: { items: AdminFormRow[]; total: number } }>(ENDPOINTS.admin.forms, { params });
     return {
@@ -114,19 +107,7 @@ export const adminApi = {
     };
   },
 
-  async listFailedWebhooks(params: { search?: string; page?: number; limit?: number } = {}): Promise<{ items: AdminWebhookRow[]; total: number }> {
-    const { data } = await api.get<{ data: { items: AdminWebhookRow[]; total: number } }>(ENDPOINTS.admin.failedWebhooks, { params });
-    return {
-      items: data.data?.items ?? [],
-      total: data.data?.total ?? 0,
-    };
-  },
-
   async revokeApiKey(keyId: string, reason: string): Promise<void> {
     await api.post(ENDPOINTS.admin.revokeApiKey(keyId), { reason });
-  },
-
-  async disableWebhook(webhookId: string, reason: string): Promise<void> {
-    await api.post(ENDPOINTS.admin.disableWebhook(webhookId), { reason });
   },
 };

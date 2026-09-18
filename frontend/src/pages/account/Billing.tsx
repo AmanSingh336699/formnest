@@ -12,19 +12,19 @@ const PLANS = [
     key: 'FREE' as const,
     name: 'Free',
     price: 0,
-    features: ['5 forms', '100 responses/month', '1 webhook per form', 'CSV export', 'Community support'],
+    features: ['Up to 5 forms'],
   },
   {
     key: 'PRO' as const,
     name: 'Pro',
     price: 12,
-    features: ['Unlimited forms', '10,000 responses/month', '5 webhooks per form', 'Remove branding', 'Custom slug', 'Priority support'],
+    features: ['Up to 50 forms'],
   },
   {
     key: 'ENTERPRISE' as const,
     name: 'Enterprise',
     price: 49,
-    features: ['Unlimited everything', 'Team collaboration', 'Dedicated support', '99.9% SLA', 'Annual DPA'],
+    features: ['Up to 1,000 forms'],
   },
 ];
 
@@ -50,7 +50,7 @@ export function BillingPage(): JSX.Element {
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8">
-      <h1 className="mb-6 text-2xl font-semibold text-gray-900">Billing & Plans</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-slate-100">Billing & Plans</h1>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {PLANS.map((p) => {
@@ -58,17 +58,17 @@ export function BillingPage(): JSX.Element {
           return (
             <Card key={p.key} className="flex flex-col">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{p.name}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{p.name}</h2>
                 {isCurrent && <Badge variant="success">Current</Badge>}
               </div>
               <div className="mt-2">
-                <span className="text-3xl font-bold">${p.price}</span>
-                {p.price > 0 && <span className="text-sm text-gray-500">/mo</span>}
+                <span className="text-3xl font-bold text-gray-900 dark:text-slate-100">${p.price}</span>
+                {p.price > 0 && <span className="text-sm text-gray-500 dark:text-slate-400">/mo</span>}
               </div>
-              <ul className="mt-4 flex-1 space-y-2 text-sm text-gray-700">
+              <ul className="mt-4 flex-1 space-y-2 text-sm text-gray-700 dark:text-slate-300">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
                     <span>{f}</span>
                   </li>
                 ))}

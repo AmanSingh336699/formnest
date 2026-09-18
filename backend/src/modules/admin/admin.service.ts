@@ -1,10 +1,8 @@
-import { eq, and, or, ilike, desc, sql, gte, lte, gt, isNotNull, isNull } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { users } from '../../../drizzle/schema/users';
 import { forms } from '../../../drizzle/schema/forms';
 import { responses } from '../../../drizzle/schema/responses';
-import { apiKeys } from '../../../drizzle/schema/apiKeys';
-import { webhooks } from '../../../drizzle/schema/webhooks';
 import { refreshTokens } from '../../../drizzle/schema/users';
 import { recordAudit } from '../../lib/auditLog';
 import { NotFoundError } from '../../lib/AppError';
@@ -23,8 +21,6 @@ export const adminService = {
       planCounts,
       [totalFormsRes],
       [totalResponsesRes],
-      [totalApiKeysRes],
-      [failedWebhooksRes],
       recentSignups
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(users),
@@ -34,8 +30,6 @@ export const adminService = {
       db.select({ plan: users.plan, count: sql<number>`count(*)::int` }).from(users).groupBy(users.plan),
       db.select({ count: sql<number>`count(*)::int` }).from(forms),
       db.select({ count: sql<number>`count(*)::int` }).from(responses),
-      db.select({ count: sql<number>`count(*)::int` }).from(apiKeys),
-      db.select({ count: sql<number>`count(*)::int` }).from(webhooks).where(or(gt(webhooks.failureCount, 0), isNotNull(webhooks.autoDisabledAt))),
       db.select({ id: users.id, email: users.email, name: users.name, createdAt: users.createdAt, plan: users.plan })
         .from(users)
         .where(gte(users.createdAt, sevenDaysAgo))
@@ -58,8 +52,6 @@ export const adminService = {
       plans,
       totalForms: totalFormsRes?.count ?? 0,
       totalResponses: totalResponsesRes?.count ?? 0,
-      totalApiKeys: totalApiKeysRes?.count ?? 0,
-      failedWebhooks: failedWebhooksRes?.count ?? 0,
       recentSignups
     };
   },
@@ -121,28 +113,16 @@ export const adminService = {
 
     const [
       [formsCountRes],
-      [apiKeysCountRes],
-      [webhooksCountRes],
       userForms,
-      userApiKeys,
-      userWebhooks,
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(forms).where(eq(forms.userId, userId)),
-      db.select({ count: sql<number>`count(*)::int` }).from(apiKeys).where(eq(apiKeys.userId, userId)),
-      db.select({ count: sql<number>`count(*)::int` }).from(webhooks).where(eq(webhooks.userId, userId)),
       db.select().from(forms).where(eq(forms.userId, userId)).orderBy(desc(forms.createdAt)).limit(50),
-      db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt)),
-      db.select().from(webhooks).where(eq(webhooks.userId, userId)).orderBy(desc(webhooks.createdAt)),
     ]);
 
     return {
       user: userSafe,
       formsCount: formsCountRes?.count ?? 0,
-      apiKeysCount: apiKeysCountRes?.count ?? 0,
-      webhooksCount: webhooksCountRes?.count ?? 0,
       forms: userForms,
-      apiKeys: userApiKeys.map(({ keyHash, encryptedKey, ...rest }) => rest),
-      webhooks: userWebhooks,
     };
   },
 
@@ -291,49 +271,6 @@ export const adminService = {
     return { items, total, page, limit };
   },
 
-  async getUserApiKeys(userId: string) {
-    const keys = await db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt));
-    return keys.map(({ keyHash, encryptedKey, ...rest }) => rest);
-  },
-
-  async getUserWebhooks(userId: string) {
-    return db.select().from(webhooks).where(eq(webhooks.userId, userId)).orderBy(desc(webhooks.createdAt));
-  },
-
-  async revokeApiKey(adminId: string, keyId: string, reason: string, ctx: { ip: string | null; ua: string | null }) {
-    const [key] = await db.select().from(apiKeys).where(eq(apiKeys.id, keyId)).limit(1);
-    if (!key) throw new NotFoundError('API Key not found');
-
-    await db.update(apiKeys).set({ revokedAt: new Date() }).where(eq(apiKeys.id, keyId));
-
-    await recordAudit({
-      userId: adminId,
-      entityType: 'api_key',
-      entityId: keyId,
-      action: 'ADMIN_REVOKE_API_KEY',
-      diff: { reason, userId: key.userId },
-      ip: ctx.ip,
-      userAgent: ctx.ua,
-    });
-  },
-
-  async disableWebhook(adminId: string, webhookId: string, reason: string, ctx: { ip: string | null; ua: string | null }) {
-    const [wh] = await db.select().from(webhooks).where(eq(webhooks.id, webhookId)).limit(1);
-    if (!wh) throw new NotFoundError('Webhook not found');
-
-    await db.update(webhooks).set({ isActive: false, updatedAt: new Date() }).where(eq(webhooks.id, webhookId));
-
-    await recordAudit({
-      userId: adminId,
-      entityType: 'webhook',
-      entityId: webhookId,
-      action: 'ADMIN_DISABLE_WEBHOOK',
-      diff: { reason, userId: wh.userId },
-      ip: ctx.ip,
-      userAgent: ctx.ua,
-    });
-  },
-
   async listAllForms(params: { search?: string; page: number; limit: number }) {
     const offset = (params.page - 1) * params.limit;
     const conditions = [];
@@ -372,85 +309,4 @@ export const adminService = {
     const total = totalResult[0]?.count ?? 0;
     return { items, total, page: params.page, limit: params.limit };
   },
-
-  async listAllApiKeys(params: { search?: string; page: number; limit: number }) {
-    const offset = (params.page - 1) * params.limit;
-    const conditions = [];
-    if (params.search) {
-      const term = `%${params.search}%`;
-      conditions.push(or(ilike(apiKeys.name, term), ilike(users.email, term), ilike(apiKeys.keyPrefix, term)));
-    }
-    const where = conditions.length > 0 ? and(...conditions) : undefined;
-
-    const [items, totalResult] = await Promise.all([
-      db
-        .select({
-          id: apiKeys.id,
-          name: apiKeys.name,
-          keyPrefix: apiKeys.keyPrefix,
-          createdAt: apiKeys.createdAt,
-          lastUsedAt: apiKeys.lastUsedAt,
-          revokedAt: apiKeys.revokedAt,
-          userId: apiKeys.userId,
-          userEmail: users.email,
-          userName: users.name,
-        })
-        .from(apiKeys)
-        .leftJoin(users, eq(apiKeys.userId, users.id))
-        .where(where)
-        .orderBy(desc(apiKeys.createdAt))
-        .limit(params.limit)
-        .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(apiKeys)
-        .leftJoin(users, eq(apiKeys.userId, users.id))
-        .where(where),
-    ]);
-
-    const total = totalResult[0]?.count ?? 0;
-    return { items, total, page: params.page, limit: params.limit };
-  },
-
-  async listFailedWebhooks(params: { search?: string; page: number; limit: number }) {
-    const offset = (params.page - 1) * params.limit;
-    const conditions = [
-      or(gt(webhooks.failureCount, 0), isNotNull(webhooks.autoDisabledAt))
-    ];
-    if (params.search) {
-      const term = `%${params.search}%`;
-      conditions.push(or(ilike(webhooks.url, term), ilike(users.email, term)));
-    }
-    const where = and(...conditions);
-
-    const [items, totalResult] = await Promise.all([
-      db
-        .select({
-          id: webhooks.id,
-          url: webhooks.url,
-          isActive: webhooks.isActive,
-          failureCount: webhooks.failureCount,
-          lastFailureAt: webhooks.lastFailureAt,
-          autoDisabledAt: webhooks.autoDisabledAt,
-          createdAt: webhooks.createdAt,
-          userId: webhooks.userId,
-          userEmail: users.email,
-          userName: users.name,
-        })
-        .from(webhooks)
-        .leftJoin(users, eq(webhooks.userId, users.id))
-        .where(where)
-        .orderBy(desc(webhooks.lastFailureAt))
-        .limit(params.limit)
-        .offset(offset),
-      db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(webhooks)
-        .leftJoin(users, eq(webhooks.userId, users.id))
-        .where(where),
-    ]);
-
-    const total = totalResult[0]?.count ?? 0;
-    return { items, total, page: params.page, limit: params.limit };
-  }
 };

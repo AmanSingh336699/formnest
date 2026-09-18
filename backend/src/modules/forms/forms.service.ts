@@ -80,19 +80,18 @@ export const formsService = {
   },
 
   async create(user: AuthenticatedUser, body: CreateFormBody, ctx: { ip: string | null; ua: string | null }): Promise<Form & { fields: FormField[] }> {
-    // Plan limit: max forms (FREE only)
-    if (user.plan === 'FREE') {
-      const result = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(forms)
-        .where(eq(forms.userId, user.id));
-      const count = result[0]?.count ?? 0;
-      if (count >= PLAN_LIMITS.FREE.maxForms) {
-        throw new PaymentRequiredError(
-          `You've reached the free plan limit of ${PLAN_LIMITS.FREE.maxForms} forms. Upgrade to Pro for unlimited.`,
-          'FORM_LIMIT_REACHED',
-        );
-      }
+    // Plan limit: max forms
+    const limitResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(forms)
+      .where(eq(forms.userId, user.id));
+    const count = limitResult[0]?.count ?? 0;
+    const maxForms = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.maxForms ?? PLAN_LIMITS.FREE.maxForms;
+    if (count >= maxForms) {
+      throw new PaymentRequiredError(
+        `You've reached your plan limit of ${maxForms} forms. Upgrade your plan to create more forms.`,
+        'FORM_LIMIT_REACHED',
+      );
     }
 
     const slug = generateSlug();
@@ -156,11 +155,8 @@ export const formsService = {
   ): Promise<Form & { fields: FormField[] }> {
     const existing = await this.getByIdForUser(formId, user.id, false);
 
-    // customSlug: require PRO+
+    // customSlug check
     if (body.customSlug !== undefined && body.customSlug !== null) {
-      if (!PLAN_LIMITS[user.plan].customSlug) {
-        throw new PaymentRequiredError('Custom slugs require the Pro plan', 'PLAN_REQUIRED');
-      }
       const [conflict] = await db
         .select({ id: forms.id })
         .from(forms)
@@ -308,15 +304,14 @@ export const formsService = {
   ): Promise<Form & { fields: FormField[] }> {
     const source = await this.getByIdForUser(formId, user.id);
 
-    if (user.plan === 'FREE') {
-      const result = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(forms)
-        .where(eq(forms.userId, user.id));
-      const count = result[0]?.count ?? 0;
-      if (count >= PLAN_LIMITS.FREE.maxForms) {
-        throw new PaymentRequiredError('Form limit reached', 'FORM_LIMIT_REACHED');
-      }
+    const dupLimitResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(forms)
+      .where(eq(forms.userId, user.id));
+    const dupCount = dupLimitResult[0]?.count ?? 0;
+    const maxForms = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]?.maxForms ?? PLAN_LIMITS.FREE.maxForms;
+    if (dupCount >= maxForms) {
+      throw new PaymentRequiredError(`You've reached your plan limit of ${maxForms} forms.`, 'FORM_LIMIT_REACHED');
     }
 
     const result = await db.transaction(async (tx) => {

@@ -1,33 +1,15 @@
 export const PLAN_LIMITS = {
   FREE: {
     maxForms: 5,
-    maxResponsesPerMonth: 100,
-    maxApiKeys: 1,
-    maxWebhooksPerForm: 1,
-    maxFileSizeBytes: 5 * 1024 * 1024,
-    webhookLogRetentionDays: 7,
-    customSlug: false,
-    removeBranding: false,
+    maxFileSizeBytes: 10 * 1024 * 1024,
   },
   PRO: {
-    maxForms: Infinity,
-    maxResponsesPerMonth: 10_000,
-    maxApiKeys: 5,
-    maxWebhooksPerForm: 5,
+    maxForms: 50,
     maxFileSizeBytes: 10 * 1024 * 1024,
-    webhookLogRetentionDays: 30,
-    customSlug: true,
-    removeBranding: true,
   },
   ENTERPRISE: {
-    maxForms: Infinity,
-    maxResponsesPerMonth: Infinity,
-    maxApiKeys: Infinity,
-    maxWebhooksPerForm: Infinity,
+    maxForms: 1000,
     maxFileSizeBytes: 10 * 1024 * 1024,
-    webhookLogRetentionDays: 90,
-    customSlug: true,
-    removeBranding: true,
   },
 } as const;
 

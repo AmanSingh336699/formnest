@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { registry } from '../../openapi/registry';
 
 export const FIELD_TYPES = [
   'TEXT_SHORT',
@@ -119,51 +118,45 @@ export const FormSettingsSchema = z
   .strict()
   .optional();
 
-export const CreateFormBodySchema = registry.register(
-  'CreateFormBody',
-  z
-    .object({
-      title: z.preprocess((val) => {
+export const CreateFormBodySchema = z
+  .object({
+    title: z.preprocess((val) => {
+      if (typeof val === 'string' && val.trim() === '') {
+        return 'Untitled form';
+      }
+      return val;
+    }, z.string().min(1).max(200)),
+    description: z.string().max(1000).optional(),
+    fields: z.array(FormFieldInputSchema).max(100).optional(),
+    theme: FormThemeSchema,
+    settings: FormSettingsSchema,
+  })
+  .strict();
+export type CreateFormBody = z.infer<typeof CreateFormBodySchema>;
+
+export const UpdateFormBodySchema = z
+  .object({
+    title: z
+      .preprocess((val) => {
         if (typeof val === 'string' && val.trim() === '') {
           return 'Untitled form';
         }
         return val;
-      }, z.string().min(1).max(200)),
-      description: z.string().max(1000).optional(),
-      fields: z.array(FormFieldInputSchema).max(100).optional(),
-      theme: FormThemeSchema,
-      settings: FormSettingsSchema,
-    })
-    .strict(),
-);
-export type CreateFormBody = z.infer<typeof CreateFormBodySchema>;
-
-export const UpdateFormBodySchema = registry.register(
-  'UpdateFormBody',
-  z
-    .object({
-      title: z
-        .preprocess((val) => {
-          if (typeof val === 'string' && val.trim() === '') {
-            return 'Untitled form';
-          }
-          return val;
-        }, z.string().min(1).max(200))
-        .optional(),
-      description: z.string().max(1000).nullable().optional(),
-      fields: z.array(FormFieldInputSchema).max(100).optional(),
-      theme: FormThemeSchema,
-      settings: FormSettingsSchema,
-      customSlug: z
-        .string()
-        .min(3)
-        .max(50)
-        .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, digits, hyphens')
-        .nullable()
-        .optional(),
-    })
-    .strict(),
-);
+      }, z.string().min(1).max(200))
+      .optional(),
+    description: z.string().max(1000).nullable().optional(),
+    fields: z.array(FormFieldInputSchema).max(100).optional(),
+    theme: FormThemeSchema,
+    settings: FormSettingsSchema,
+    customSlug: z
+      .string()
+      .min(3)
+      .max(50)
+      .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, digits, hyphens')
+      .nullable()
+      .optional(),
+  })
+  .strict();
 export type UpdateFormBody = z.infer<typeof UpdateFormBodySchema>;
 
 export const FormIdParamsSchema = z.object({ id: z.string().min(1).max(50) });
@@ -177,9 +170,7 @@ export const ListFormsQuerySchema = z
   })
   .strict();
 
-export const FormResponseSchema = registry.register(
-  'Form',
-  z.object({
+export const FormResponseSchema = z.object({
     id: z.string(),
     title: z.string(),
     description: z.string().nullable(),
@@ -194,6 +185,5 @@ export const FormResponseSchema = registry.register(
     publishedAt: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
-    fields: z.array(z.unknown()).optional(),
-  }),
-);
+  fields: z.array(z.unknown()).optional(),
+});

@@ -130,67 +130,9 @@ export const adminController = {
     }
   },
 
-  async getUserApiKeys(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const data = await adminService.getUserApiKeys(req.params.userId!);
-      success(res, data);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  async getUserWebhooks(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const data = await adminService.getUserWebhooks(req.params.userId!);
-      success(res, data);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  async revokeApiKey(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const adminId = getAdminId(req);
-      const { reason } = req.body;
-      await adminService.revokeApiKey(adminId, req.params.keyId!, reason, getCtx(req));
-      success(res, { success: true });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  async disableWebhook(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const adminId = getAdminId(req);
-      const { reason } = req.body;
-      await adminService.disableWebhook(adminId, req.params.webhookId!, reason, getCtx(req));
-      success(res, { success: true });
-    } catch (err) {
-      next(err);
-    }
-  },
-
   async listForms(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const data = await adminService.listAllForms(req.query as any);
-      success(res, data);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  async listApiKeys(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const data = await adminService.listAllApiKeys(req.query as any);
-      success(res, data);
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  async listFailedWebhooks(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const data = await adminService.listFailedWebhooks(req.query as any);
       success(res, data);
     } catch (err) {
       next(err);

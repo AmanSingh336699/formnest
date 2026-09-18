@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { publicApi } from '../../api/services/public.service';
 import { FormRenderer } from '../../components/renderer/FormRenderer';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { mergeEmbedTheme } from '../../lib/embed';
 import type { Form } from '../../types';
 
 function generateIdempotencyKey(): string {
@@ -12,8 +11,6 @@ function generateIdempotencyKey(): string {
 
 export function PublicFormViewPage(): JSX.Element {
   const { slug } = useParams<{ slug: string }>();
-  const [params] = useSearchParams();
-  const isEmbed = params.get('embed') === '1';
   const [form, setForm] = useState<Form | null>(null);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [submitted, setSubmitted] = useState<{ message: string; branding: boolean } | null>(null);
@@ -21,10 +18,6 @@ export function PublicFormViewPage(): JSX.Element {
   const loadedAtRef = useRef<number>(Date.now());
   const startedRef = useRef(false);
   const idempotencyKey = useRef(generateIdempotencyKey()).current;
-  const renderForm = useMemo<Form | null>(() => {
-    if (!form) return null;
-    return isEmbed ? { ...form, theme: mergeEmbedTheme(form.theme, params) } : form;
-  }, [form, isEmbed, params]);
 
   useEffect(() => {
     if (!slug) return;
@@ -37,19 +30,6 @@ export function PublicFormViewPage(): JSX.Element {
         setError({ code, message });
       });
   }, [slug]);
-
-  // Auto-resize for embed via postMessage
-  useEffect(() => {
-    if (!isEmbed) return;
-    function sendHeight(): void {
-      const h = document.documentElement.scrollHeight;
-      window.parent.postMessage({ type: 'formnest:resize', formId: form?.id ?? null, slug: slug ?? null, height: h }, '*');
-    }
-    sendHeight();
-    const ro = new ResizeObserver(sendHeight);
-    ro.observe(document.documentElement);
-    return () => ro.disconnect();
-  }, [isEmbed, form, slug, submitted]);
 
   function handleFieldFocus(): void {
     if (startedRef.current || !form) return;
@@ -102,7 +82,7 @@ export function PublicFormViewPage(): JSX.Element {
     );
   }
 
-  if (!form || !renderForm) {
+  if (!form) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="mx-auto max-w-2xl space-y-4">
@@ -136,9 +116,9 @@ export function PublicFormViewPage(): JSX.Element {
   }
 
   return (
-    <div className={isEmbed ? '' : 'min-h-screen bg-gray-50'}>
+    <div className="min-h-screen bg-gray-50">
       <FormRenderer
-        form={renderForm}
+        form={form}
         onSubmit={handleSubmit}
         onFieldFocus={handleFieldFocus}
         submitting={submitting}

@@ -9,8 +9,6 @@ import {
   Send,
   Ban,
   Unlock,
-  Key,
-  Webhook,
   FileText,
   Trash2,
 } from 'lucide-react';
@@ -30,7 +28,6 @@ export default function UserDetail(): JSX.Element {
   const { userId } = useParams<{ userId: string }>();
   const [detail, setDetail] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'forms' | 'api-keys' | 'webhooks'>('forms');
 
   // Modals state
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,8 +39,6 @@ export default function UserDetail(): JSX.Element {
     | 'suspend'
     | 'unsuspend'
     | 'revoke-sessions'
-    | 'revoke-key'
-    | 'disable-webhook'
     | null
   >(null);
 
@@ -51,7 +46,6 @@ export default function UserDetail(): JSX.Element {
   const [reason, setReason] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<UserPlan>('FREE');
   const [planValidUntil, setPlanValidUntil] = useState('');
-  const [targetId, setTargetId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   async function fetchUserDetail() {
@@ -75,10 +69,8 @@ export default function UserDetail(): JSX.Element {
 
   function openActionModal(
     type: typeof modalType,
-    target: string | null = null
   ) {
     setModalType(type);
-    setTargetId(target);
     setReason('');
     setModalOpen(true);
   }
@@ -125,18 +117,6 @@ export default function UserDetail(): JSX.Element {
         case 'revoke-sessions':
           await adminApi.revokeSessions(userId, reason);
           toast.success('All sessions revoked');
-          break;
-        case 'revoke-key':
-          if (targetId) {
-            await adminApi.revokeApiKey(targetId, reason);
-            toast.success('API Key revoked');
-          }
-          break;
-        case 'disable-webhook':
-          if (targetId) {
-            await adminApi.disableWebhook(targetId, reason);
-            toast.success('Webhook disabled');
-          }
           break;
       }
       setModalOpen(false);
@@ -328,201 +308,57 @@ export default function UserDetail(): JSX.Element {
           </Card>
         </div>
 
-        {/* Right Side: Tab container */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="border-b border-slate-200 dark:border-slate-800 flex gap-4">
-            <button
-              onClick={() => setActiveTab('forms')}
-              className={`pb-3 text-sm font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
-                activeTab === 'forms'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-850'
-              }`}
-            >
-              <FileText className="h-4 w-4" />
-              <span>Forms ({detail.formsCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('api-keys')}
-              className={`pb-3 text-sm font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
-                activeTab === 'api-keys'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-850'
-              }`}
-            >
-              <Key className="h-4 w-4" />
-              <span>API Keys ({detail.apiKeysCount})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('webhooks')}
-              className={`pb-3 text-sm font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
-                activeTab === 'webhooks'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-850'
-              }`}
-            >
-              <Webhook className="h-4 w-4" />
-              <span>Webhooks ({detail.webhooksCount})</span>
-            </button>
+        {/* Right Side: Forms List */}
+        <div className="md:col-span-2 space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+            <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">User Forms ({detail.formsCount})</h3>
           </div>
 
           {/* Forms Tab */}
-          {activeTab === 'forms' && (
-            <Card padded={false} className="overflow-hidden">
-              {detail.forms.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">This user has not created any forms yet.</div>
-              ) : (
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 font-medium">
-                      <th className="px-6 py-2.5">Title</th>
-                      <th className="px-6 py-2.5">Status</th>
-                      <th className="px-6 py-2.5">Created</th>
+          <Card padded={false} className="overflow-hidden">
+            {detail.forms.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">This user has not created any forms yet.</div>
+            ) : (
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 font-medium">
+                    <th className="px-6 py-2.5">Title</th>
+                    <th className="px-6 py-2.5">Status</th>
+                    <th className="px-6 py-2.5">Created</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
+                  {detail.forms.map((form) => (
+                    <tr key={form.id} className="hover:bg-slate-50/30">
+                      <td className="px-6 py-3 font-medium">
+                        <div className="flex flex-col">
+                          <span>{form.title}</span>
+                          <span className="text-xs text-slate-400">/{form.slug}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        <Badge
+                          variant={
+                            form.status === 'PUBLISHED'
+                              ? 'success'
+                              : form.status === 'CLOSED'
+                              ? 'danger'
+                              : 'neutral'
+                          }
+                        >
+                          {form.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-3 text-slate-400 text-xs">
+                        {new Date(form.createdAt).toLocaleDateString()}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
-                    {detail.forms.map((form) => (
-                      <tr key={form.id} className="hover:bg-slate-50/30">
-                        <td className="px-6 py-3 font-medium">
-                          <div className="flex flex-col">
-                            <span>{form.title}</span>
-                            <span className="text-xs text-slate-400">/{form.slug}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3">
-                          <Badge
-                            variant={
-                              form.status === 'PUBLISHED'
-                                ? 'success'
-                                : form.status === 'CLOSED'
-                                ? 'danger'
-                                : 'neutral'
-                            }
-                          >
-                            {form.status}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-3 text-slate-400 text-xs">
-                          {new Date(form.createdAt).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Card>
-          )}
-
-          {/* API Keys Tab */}
-          {activeTab === 'api-keys' && (
-            <Card padded={false} className="overflow-hidden">
-              {detail.apiKeys.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">No API keys registered for this user.</div>
-              ) : (
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 font-medium">
-                      <th className="px-6 py-2.5">Key Name</th>
-                      <th className="px-6 py-2.5">Prefix</th>
-                      <th className="px-6 py-2.5">Last Used</th>
-                      <th className="px-6 py-2.5">Status</th>
-                      <th className="px-6 py-2.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
-                    {detail.apiKeys.map((key) => (
-                      <tr key={key.id} className="hover:bg-slate-50/30">
-                        <td className="px-6 py-3 font-medium">{key.name}</td>
-                        <td className="px-6 py-3 font-mono text-xs">{key.keyPrefix}...</td>
-                        <td className="px-6 py-3 text-slate-400 text-xs">
-                          {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : 'Never'}
-                        </td>
-                        <td className="px-6 py-3">
-                          {key.revokedAt ? (
-                            <Badge variant="danger">Revoked</Badge>
-                          ) : (
-                            <Badge variant="success">Active</Badge>
-                          )}
-                        </td>
-                        <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          {!key.revokedAt && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-650 hover:text-red-700 h-8"
-                              onClick={() => openActionModal('revoke-key', key.id)}
-                            >
-                              Revoke
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Card>
-          )}
-
-          {/* Webhooks Tab */}
-          {activeTab === 'webhooks' && (
-            <Card padded={false} className="overflow-hidden">
-              {detail.webhooks.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">No webhooks configured for this user.</div>
-              ) : (
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 font-medium">
-                      <th className="px-6 py-2.5">Endpoint URL</th>
-                      <th className="px-6 py-2.5">Failures</th>
-                      <th className="px-6 py-2.5">Status</th>
-                      <th className="px-6 py-2.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
-                    {detail.webhooks.map((wh) => (
-                      <tr key={wh.id} className="hover:bg-slate-50/30">
-                        <td className="px-6 py-3">
-                          <div className="flex flex-col truncate max-w-sm">
-                            <span className="font-medium text-slate-800 dark:text-slate-200 truncate select-all">{wh.url}</span>
-                            <span className="text-xs text-slate-400">Form: {wh.formId}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3">
-                          {wh.failureCount > 0 ? (
-                            <span className="text-amber-600 dark:text-amber-400 font-semibold">{wh.failureCount} fails</span>
-                          ) : (
-                            <span className="text-slate-400">0</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3">
-                          {wh.autoDisabledAt ? (
-                            <Badge variant="danger">Auto-Disabled</Badge>
-                          ) : wh.isActive ? (
-                            <Badge variant="success">Active</Badge>
-                          ) : (
-                            <Badge variant="neutral">Disabled</Badge>
-                          )}
-                        </td>
-                        <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          {wh.isActive && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-650 hover:text-red-700 h-8"
-                              onClick={() => openActionModal('disable-webhook', wh.id)}
-                            >
-                              Disable
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Card>
-          )}
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
         </div>
       </div>
 
@@ -545,8 +381,6 @@ export default function UserDetail(): JSX.Element {
             ? 'Unsuspend User Account'
             : modalType === 'revoke-sessions'
             ? 'Force Terminate Sessions'
-            : modalType === 'revoke-key'
-            ? 'Revoke API Access Key'
             : modalType === 'disable-webhook'
             ? 'Disable Webhook Endpoint'
             : 'Confirm Action'
@@ -564,9 +398,7 @@ export default function UserDetail(): JSX.Element {
             <Button
               variant={
                 modalType === 'suspend' ||
-                modalType === 'revoke-sessions' ||
-                modalType === 'revoke-key' ||
-                modalType === 'disable-webhook'
+                modalType === 'revoke-sessions'
                   ? 'danger'
                   : 'primary'
               }
