@@ -4,28 +4,47 @@ import { Textarea } from '../ui/Textarea';
 import { Switch } from '../ui/Switch';
 import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, X } from 'lucide-react';
 import type { FieldConditionOperator, FieldOption, FieldVisibilityRule, FormField } from '../../types';
 
 function newOption(): FieldOption {
   return { id: `opt_${Math.random().toString(36).slice(2, 8)}`, label: 'New option', value: `option-${Date.now().toString(36)}` };
 }
 
-export function FieldSettingsPanel(): JSX.Element {
+interface FieldSettingsPanelProps {
+  onCloseMobile?: () => void;
+  isMobileDrawer?: boolean;
+}
+
+export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSettingsPanelProps = {}): JSX.Element {
   const selectedId = useBuilderStore((s) => s.selectedFieldId);
   const fields = useBuilderStore((s) => s.fields);
   const updateField = useBuilderStore((s) => s.updateField);
 
   const field = fields.find((f) => f.id === selectedId);
 
+  const containerClasses = isMobileDrawer
+    ? 'flex h-full w-full flex-col bg-white dark:bg-slate-900'
+    : 'hidden h-full w-80 flex-col border-l border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex';
+
   if (!field) {
     return (
-      <aside className="hidden h-full w-80 flex-col border-l border-gray-200 bg-white lg:flex" aria-label="Field settings">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Field settings</h2>
+      <aside className={containerClasses} aria-label="Field settings">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-slate-800">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Field settings</h2>
+          {isMobileDrawer && (
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              aria-label="Close settings"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <div className="flex flex-1 items-center justify-center px-6 text-center">
-          <p className="text-sm text-gray-500">Select a field to edit its settings.</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Select a field to edit its settings.</p>
         </div>
       </aside>
     );
@@ -36,10 +55,22 @@ export function FieldSettingsPanel(): JSX.Element {
   const supportsDefaultValue = isInput && field.type !== 'CHECKBOX' && field.type !== 'RATING' && field.type !== 'FILE_UPLOAD';
 
   return (
-    <aside className="hidden h-full w-80 flex-col border-l border-gray-200 bg-white lg:flex" aria-label="Field settings">
-      <div className="border-b border-gray-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-gray-900">Field settings</h2>
-        <p className="mt-0.5 text-xs text-gray-500 capitalize">{field.type.toLowerCase().replace('_', ' ')}</p>
+    <aside className={containerClasses} aria-label="Field settings">
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-slate-800">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Field settings</h2>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400 capitalize">{field.type.toLowerCase().replace('_', ' ')}</p>
+        </div>
+        {isMobileDrawer && (
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label="Close settings"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">

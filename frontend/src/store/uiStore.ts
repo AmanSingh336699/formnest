@@ -4,9 +4,12 @@ type Theme = 'light' | 'dark';
 
 interface UiState {
   sidebarCollapsed: boolean;
+  mobileSidebarOpen: boolean;
   theme: Theme;
   toggleSidebar: () => void;
   setSidebar: (collapsed: boolean) => void;
+  toggleMobileSidebar: () => void;
+  setMobileSidebar: (open: boolean) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -21,9 +24,12 @@ export const useUiStore = create<UiState>((set) => {
 
   return {
     sidebarCollapsed: false,
+    mobileSidebarOpen: false,
     theme: initialTheme,
     toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     setSidebar: (collapsed) => set({ sidebarCollapsed: collapsed }),
+    toggleMobileSidebar: () => set((s) => ({ mobileSidebarOpen: !s.mobileSidebarOpen })),
+    setMobileSidebar: (open) => set({ mobileSidebarOpen: open }),
     setTheme: (theme) => {
       localStorage.setItem('formnest-theme', theme);
       applyTheme(theme);

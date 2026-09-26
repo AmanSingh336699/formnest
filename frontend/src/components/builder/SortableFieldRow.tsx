@@ -32,12 +32,28 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
         isDragging && 'opacity-50',
       )}
     >
+      <div className="flex items-center justify-between mb-2 sm:hidden">
+        <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+          {field.type.toLowerCase().replace('_', ' ')}
+        </span>
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          className="cursor-grab rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 touch-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </div>
+
       <button
         type="button"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className="absolute -left-7 top-1/2 -translate-y-1/2 cursor-grab rounded p-1 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 active:cursor-grabbing"
+        className="hidden sm:block absolute -left-7 top-1/2 -translate-y-1/2 cursor-grab rounded p-1 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
         onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="h-4 w-4" />
@@ -46,23 +62,28 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
       <FieldRenderer field={field} value={null} onChange={() => undefined} disabled />
 
       {selected && (
-        <div className="mt-3 flex items-center justify-end gap-1 border-t border-gray-100 pt-3">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-            aria-label="Duplicate field"
-          >
-            <Copy className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
-            aria-label="Delete field"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-slate-800">
+          <span className="text-xs font-medium text-brand-600 dark:text-brand-400 lg:hidden">
+            Tap to edit settings
+          </span>
+          <div className="flex items-center gap-1 ml-auto">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              aria-label="Duplicate field"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+              aria-label="Delete field"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>

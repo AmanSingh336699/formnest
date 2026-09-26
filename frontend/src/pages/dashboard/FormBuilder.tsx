@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Eye, Send, Settings, BarChart2, Share2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Eye, Send, Settings, BarChart2, Share2, Loader2, Plus, SlidersHorizontal, Layers } from 'lucide-react';
 import { formsApi } from '../../api/services/forms.service';
 import { FieldPalette } from '../../components/builder/FieldPalette';
 import { Canvas } from '../../components/builder/Canvas';
@@ -18,6 +18,8 @@ export function FormBuilderPage(): JSX.Element {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [mobileDrawer, setMobileDrawer] = useState<'palette' | 'settings' | null>(null);
+
   const loadForm = useBuilderStore((s) => s.loadForm);
   const reset = useBuilderStore((s) => s.reset);
   const title = useBuilderStore((s) => s.title);
@@ -26,6 +28,7 @@ export function FormBuilderPage(): JSX.Element {
   const lastSavedAt = useBuilderStore((s) => s.lastSavedAt);
   const fields = useBuilderStore((s) => s.fields);
   const theme = useBuilderStore((s) => s.theme);
+  const selectedFieldId = useBuilderStore((s) => s.selectedFieldId);
 
   const { data: form, isLoading } = useQuery({
     queryKey: ['form', id],
@@ -37,6 +40,12 @@ export function FormBuilderPage(): JSX.Element {
     if (form) loadForm(form);
     return () => reset();
   }, [form, loadForm, reset]);
+
+  useEffect(() => {
+    if (selectedFieldId && window.innerWidth < 1024) {
+      setMobileDrawer('settings');
+    }
+  }, [selectedFieldId]);
 
   useAutoSave();
 
@@ -61,58 +70,171 @@ export function FormBuilderPage(): JSX.Element {
   const savedLabel = isSaving
     ? 'Saving...'
     : isDirty
-      ? 'Unsaved changes'
+      ? 'Unsaved'
       : lastSavedAt
-        ? `Saved ${new Date(lastSavedAt).toLocaleTimeString()}`
+        ? `Saved ${new Date(lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
         : 'Saved';
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-slate-950">
-      <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center gap-3">
-          <Link to="/dashboard/forms" aria-label="Back" className="rounded-md p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800">
-            <ArrowLeft className="h-4 w-4 text-gray-600 dark:text-slate-300" />
+      {/* Responsive Top Header */}
+      <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-4 dark:border-slate-800 dark:bg-slate-900 shrink-0">
+        {/* Left: Back & Form Title */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Link
+            to="/dashboard/forms"
+            aria-label="Back to forms"
+            className="rounded-md p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div>
-            <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{title || 'Untitled form'}</div>
-            <div className="text-xs text-gray-500 dark:text-slate-400">{savedLabel}</div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100 max-w-[100px] sm:max-w-[180px] md:max-w-[280px]">
+              {title || 'Untitled form'}
+            </div>
+            <div className="text-[11px] text-gray-500 dark:text-slate-400">{savedLabel}</div>
           </div>
         </div>
-        <nav className="flex items-center gap-1">
-          <Link to={`/dashboard/forms/${id}`} className="rounded-md bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">Build</Link>
-          <Link to={`/dashboard/forms/${id}/responses`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">Responses</Link>
-          <Link to={`/dashboard/forms/${id}/analytics`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
-            <span className="inline-flex items-center gap-1"><BarChart2 className="h-3.5 w-3.5" />Analytics</span>
+
+        {/* Center Navigation Links */}
+        <nav className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto px-1 py-1 no-scrollbar">
+          <Link
+            to={`/dashboard/forms/${id}`}
+            className="rounded-md bg-brand-50 px-2.5 py-1.5 text-xs sm:text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-200 whitespace-nowrap"
+          >
+            Build
           </Link>
-          <Link to={`/dashboard/forms/${id}/share`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
-            <span className="inline-flex items-center gap-1"><Share2 className="h-3.5 w-3.5" />Share</span>
+          <Link
+            to={`/dashboard/forms/${id}/responses`}
+            className="rounded-md px-2.5 py-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 whitespace-nowrap"
+          >
+            Responses
           </Link>
-          <Link to={`/dashboard/forms/${id}/settings`} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
-            <span className="inline-flex items-center gap-1"><Settings className="h-3.5 w-3.5" />Settings</span>
+          <Link
+            to={`/dashboard/forms/${id}/analytics`}
+            className="hidden md:inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 whitespace-nowrap"
+          >
+            <BarChart2 className="h-3.5 w-3.5" />
+            Analytics
+          </Link>
+          <Link
+            to={`/dashboard/forms/${id}/share`}
+            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 whitespace-nowrap"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Share</span>
+          </Link>
+          <Link
+            to={`/dashboard/forms/${id}/settings`}
+            className="hidden sm:inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 whitespace-nowrap"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            <span>Settings</span>
           </Link>
         </nav>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} leftIcon={<Eye className="h-4 w-4" />}>
-            Preview
+
+        {/* Right Action Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreviewOpen(true)}
+            leftIcon={<Eye className="h-3.5 w-3.5" />}
+            className="px-2.5 sm:px-3 text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">Preview</span>
           </Button>
           <Button
             size="sm"
             onClick={() => publishMutation.mutate()}
             loading={publishMutation.isPending}
-            leftIcon={<Send className="h-4 w-4" />}
+            leftIcon={<Send className="h-3.5 w-3.5" />}
             disabled={fields.filter((f) => f.type !== 'HEADING' && f.type !== 'DIVIDER').length === 0}
+            className="px-2.5 sm:px-3 text-xs sm:text-sm"
           >
             Publish
           </Button>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <FieldPalette />
-        <Canvas />
-        <FieldSettingsPanel />
+      {/* Main Builder Area */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Desktop Left Palette */}
+        <div className="hidden lg:block h-full">
+          <FieldPalette />
+        </div>
+
+        {/* Center Canvas */}
+        <div className="flex flex-1 flex-col h-full overflow-hidden">
+          <Canvas />
+        </div>
+
+        {/* Desktop Right Settings Panel */}
+        <div className="hidden lg:block h-full">
+          <FieldSettingsPanel />
+        </div>
       </div>
 
+      {/* Mobile / Tablet Floating Dock for Sidebars (< 1024px) */}
+      <div className="flex lg:hidden items-center justify-around border-t border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 px-4 py-2 shrink-0 z-20 shadow-lg">
+        <button
+          type="button"
+          onClick={() => setMobileDrawer('palette')}
+          className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+            mobileDrawer === 'palette' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-slate-400'
+          }`}
+        >
+          <Plus className="h-5 w-5" />
+          <span>Add Fields</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileDrawer(null)}
+          className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+            mobileDrawer === null ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-slate-400'
+          }`}
+        >
+          <Layers className="h-5 w-5" />
+          <span>Canvas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileDrawer('settings')}
+          className={`relative flex flex-col items-center gap-1 text-xs font-medium transition-colors ${
+            mobileDrawer === 'settings' ? 'text-brand-600 dark:text-brand-400' : 'text-gray-600 dark:text-slate-400'
+          }`}
+        >
+          <SlidersHorizontal className="h-5 w-5" />
+          <span>Settings</span>
+          {selectedFieldId && (
+            <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-brand-600 ring-2 ring-white dark:ring-slate-900" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Drawer Slide-Over Sheet (Left: Palette) */}
+      {mobileDrawer === 'palette' && (
+        <div className="fixed inset-0 z-50 flex lg:hidden animate-fade-in" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs" onClick={() => setMobileDrawer(null)} />
+          <div className="relative w-80 max-w-[85vw] h-full bg-white dark:bg-slate-900 shadow-2xl animate-slide-right">
+            <FieldPalette isMobileDrawer onCloseMobile={() => setMobileDrawer(null)} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Drawer Slide-Over Sheet (Right: Settings) */}
+      {mobileDrawer === 'settings' && (
+        <div className="fixed inset-0 z-50 flex justify-end lg:hidden animate-fade-in" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs" onClick={() => setMobileDrawer(null)} />
+          <div className="relative w-88 max-w-[88vw] h-full bg-white dark:bg-slate-900 shadow-2xl animate-slide-left">
+            <FieldSettingsPanel isMobileDrawer onCloseMobile={() => setMobileDrawer(null)} />
+          </div>
+        </div>
+      )}
+
+      {/* Form Preview Modal */}
       <Modal open={previewOpen} onOpenChange={setPreviewOpen} title="Form preview" size="xl">
         <div className="-mx-6 -my-4 max-h-[70vh] overflow-y-auto bg-gray-50 dark:bg-slate-950">
           <FormRenderer

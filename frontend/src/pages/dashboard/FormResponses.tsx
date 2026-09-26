@@ -240,10 +240,14 @@ export function FormResponsesPage(): JSX.Element {
       </header>
 
       {/* ── Two-panel body ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
 
         {/* LEFT: Response list */}
-        <aside className="flex w-80 shrink-0 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 xl:w-96 transition-colors duration-200">
+        <aside
+          className={`flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-colors duration-200 shrink-0 ${
+            openId ? 'hidden lg:flex lg:w-80 xl:w-96' : 'flex w-full lg:w-80 xl:w-96'
+          }`}
+        >
 
           {/* List toolbar */}
           <div className="flex shrink-0 flex-col gap-3 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
@@ -351,14 +355,27 @@ export function FormResponsesPage(): JSX.Element {
         </aside>
 
         {/* RIGHT: Detail panel */}
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main
+          className={`flex flex-col overflow-hidden ${
+            openId ? 'flex-1 w-full' : 'hidden lg:flex lg:flex-1'
+          }`}
+        >
           {!openId && <EmptyDetail />}
 
           {openId && (
             <>
               {/* Detail toolbar */}
-              <div className="flex shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-3 transition-colors duration-200">
+              <div className="flex shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 py-3 transition-colors duration-200">
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOpenId(null)}
+                    className="flex items-center gap-1 rounded-md p-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+                    aria-label="Back to responses list"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Back</span>
+                  </button>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-500/20">
                     <User className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                   </div>
@@ -456,7 +473,7 @@ export function FormResponsesPage(): JSX.Element {
                       </div>
 
                       {/* Answer grid — auto-fit, no forced scroll */}
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {detail.answers.map((a) => {
                           const field = fieldsById.get(a.fieldId);
                           const valStr = formatValue(a.value);

@@ -19,24 +19,24 @@ export function OverviewPage(): JSX.Element {
   const totalViews = (data?.items ?? []).reduce((acc, f) => acc + f.totalViews, 0);
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8">
-      <div className="mb-8 flex items-center justify-between gap-4">
+    <div className="mx-auto max-w-[1600px] px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Welcome back, {user?.name?.split(' ')[0]}</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Here's what's happening with your forms.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-950 dark:text-white">Welcome back, {user?.name?.split(' ')[0]}</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">Here's what's happening with your forms.</p>
         </div>
-        <Link to="/dashboard/forms">
-          <Button leftIcon={<Plus className="h-4 w-4" />}>Create form</Button>
+        <Link to="/dashboard/forms" className="w-full sm:w-auto">
+          <Button leftIcon={<Plus className="h-4 w-4" />} className="w-full sm:w-auto">Create form</Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="Forms" value={totalForms} icon={FileText} loading={isLoading} />
         <StatCard label="Total responses" value={totalResponses} icon={Send} loading={isLoading} />
         <StatCard label="Total views" value={totalViews} icon={Eye} loading={isLoading} />
       </div>
 
-      <Card className="mt-8">
+      <Card className="mt-6 sm:mt-8">
         <h2 className="text-base font-semibold text-slate-950 dark:text-white">Recent forms</h2>
         <div className="mt-4 space-y-2">
           {isLoading && (
@@ -47,12 +47,12 @@ export function OverviewPage(): JSX.Element {
             </>
           )}
           {!isLoading && (data?.items ?? []).slice(0, 5).map((f) => (
-            <Link key={f.id} to={`/dashboard/forms/${f.id}`} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/70">
-              <div>
-                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{f.title}</div>
+            <Link key={f.id} to={`/dashboard/forms/${f.id}`} className="flex items-center justify-between rounded-lg border border-slate-100 p-3 sm:p-4 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/70">
+              <div className="min-w-0 flex-1 pr-2">
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{f.title}</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">{f.totalResponses} responses</div>
               </div>
-              <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(f.updatedAt).toLocaleDateString()}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{new Date(f.updatedAt).toLocaleDateString()}</span>
             </Link>
           ))}
           {!isLoading && (data?.items ?? []).length === 0 && (

@@ -60,13 +60,13 @@ export function FormsListPage(): JSX.Element {
   });
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-[1600px] px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Forms</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Create, edit, and manage your forms.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-950 dark:text-white">Forms</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">Create, edit, and manage your forms.</p>
         </div>
-        <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} leftIcon={<Plus className="h-4 w-4" />}>
+        <Button onClick={() => createMutation.mutate()} loading={createMutation.isPending} leftIcon={<Plus className="h-4 w-4" />} className="w-full sm:w-auto">
           New form
         </Button>
       </div>
@@ -93,14 +93,14 @@ export function FormsListPage(): JSX.Element {
       {!isLoading && (data?.items ?? []).length > 0 && (
         <div className="space-y-3">
           {(data?.items ?? []).map((f: FormSummary) => (
-            <Card key={f.id} padded={false} className="p-5 transition-all hover:border-brand-200 hover:shadow-md dark:hover:border-brand-500/30 dark:hover:shadow-none">
-              <div className="flex items-center justify-between gap-4">
+            <Card key={f.id} padded={false} className="p-4 sm:p-5 transition-all hover:border-brand-200 hover:shadow-md dark:hover:border-brand-500/30 dark:hover:shadow-none">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <Link to={`/dashboard/forms/${f.id}`} className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate text-base font-medium text-slate-900 dark:text-slate-100">{f.title}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">{f.title}</h3>
                     <Badge variant={statusVariant(f.status)}>{f.status.toLowerCase()}</Badge>
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                     <span>{f.totalResponses} responses</span>
                     <span>·</span>
                     <span>{f.totalViews} views</span>
@@ -108,13 +108,13 @@ export function FormsListPage(): JSX.Element {
                     <span>Updated {new Date(f.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </Link>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 justify-end">
                   <Link to={`/dashboard/forms/${f.id}/responses`}>
                     <Button variant="ghost" size="sm">Responses</Button>
                   </Link>
                   <button
                     onClick={() => duplicateMutation.mutate(f.id)}
-                    className="rounded-md px-2 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    className="rounded-md px-2.5 py-1.5 text-xs sm:text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                   >
                     Duplicate
                   </button>

@@ -18,18 +18,18 @@ export function FormAnalyticsPage(): JSX.Element {
   const max = Math.max(1, ...(data?.daily ?? []).map((d) => Math.max(d.views, d.completions)));
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8">
+    <div className="mx-auto max-w-[1600px] px-4 sm:px-6 py-6 sm:py-8">
       <div className="mb-6 flex items-center gap-3">
         <Link to={`/dashboard/forms/${id}`} className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{form?.title ?? 'Analytics'}</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Last 7 days</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{form?.title ?? 'Analytics'}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Last 7 days performance</p>
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Views" value={data?.totalViews ?? 0} icon={Eye} loading={isLoading} />
         <Stat label="Starts" value={data?.totalStarts ?? 0} icon={MousePointerClick} loading={isLoading} />
         <Stat label="Responses" value={data?.totalResponses ?? 0} icon={CheckCircle2} loading={isLoading} />
@@ -40,24 +40,26 @@ export function FormAnalyticsPage(): JSX.Element {
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">Daily activity</h2>
         {isLoading && <Skeleton className="mt-4 h-48 w-full" />}
         {!isLoading && (
-          <div className="mt-6 flex h-48 items-end gap-2">
-            {(data?.daily ?? []).map((d) => (
-              <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                <div className="flex w-full flex-1 items-end gap-0.5">
-                  <div
-                    className="flex-1 rounded-t bg-brand-200"
-                    style={{ height: `${(d.views / max) * 100}%` }}
-                    title={`${d.views} views`}
-                  />
-                  <div
-                    className="flex-1 rounded-t bg-brand-600"
-                    style={{ height: `${(d.completions / max) * 100}%` }}
-                    title={`${d.completions} completions`}
-                  />
+          <div className="mt-6 overflow-x-auto pb-2">
+            <div className="flex h-48 items-end gap-2 min-w-[320px]">
+              {(data?.daily ?? []).map((d) => (
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1 min-w-[32px]">
+                  <div className="flex w-full flex-1 items-end gap-0.5">
+                    <div
+                      className="flex-1 rounded-t bg-brand-200"
+                      style={{ height: `${(d.views / max) * 100}%` }}
+                      title={`${d.views} views`}
+                    />
+                    <div
+                      className="flex-1 rounded-t bg-brand-600"
+                      style={{ height: `${(d.completions / max) * 100}%` }}
+                      title={`${d.completions} completions`}
+                    />
+                  </div>
+                  <div className="text-[10px] text-gray-500">{d.date.slice(5)}</div>
                 </div>
-                <div className="text-[10px] text-gray-500">{d.date.slice(5)}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
         <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
