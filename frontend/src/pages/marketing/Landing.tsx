@@ -17,7 +17,7 @@ const FAQ = [
 export function LandingPage(): JSX.Element {
   return (
     <div className="bg-white dark:bg-slate-950">
-      <section className="bg-gradient-to-b from-white to-brand-50 px-6 py-16 dark:from-slate-950 dark:to-slate-900">
+      <section className="bg-linear-to-b from-white to-brand-50 px-6 py-16 dark:from-slate-950 dark:to-slate-900">
         <div className="mx-auto max-w-5xl text-center">
           <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl dark:text-white">
             Build forms in minutes.<br />

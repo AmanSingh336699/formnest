@@ -27,7 +27,7 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
       aria-pressed={selected}
       className={cn(
         'group relative rounded-lg border bg-white p-4 transition-all',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500',
         selected ? 'border-brand-500 ring-2 ring-brand-200' : 'border-gray-200 hover:border-gray-300',
         isDragging && 'opacity-50',
       )}
@@ -41,7 +41,7 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
-          className="cursor-grab rounded p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 touch-none"
+          className="cursor-grab rounded-sm p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 touch-none"
           onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="h-4 w-4" />
@@ -53,7 +53,7 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className="hidden sm:block absolute -left-7 top-1/2 -translate-y-1/2 cursor-grab rounded p-1 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+        className="hidden sm:block absolute -left-7 top-1/2 -translate-y-1/2 cursor-grab rounded-sm p-1 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
         onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="h-4 w-4" />
@@ -70,7 +70,7 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-              className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="rounded-sm p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               aria-label="Duplicate field"
             >
               <Copy className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function SortableFieldRow({ field, selected, onSelect, onDuplicate, onDel
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+              className="rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
               aria-label="Delete field"
             >
               <Trash2 className="h-4 w-4" />

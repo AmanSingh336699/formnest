@@ -63,8 +63,8 @@ export function FormAnalyticsPage(): JSX.Element {
           </div>
         )}
         <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-brand-200" /> Views</span>
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-brand-600" /> Completions</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-xs bg-brand-200" /> Views</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-xs bg-brand-600" /> Completions</span>
         </div>
       </Card>
     </div>

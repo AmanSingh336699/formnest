@@ -45,7 +45,7 @@ export function AdminShell(): JSX.Element {
                 cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-rose-600 text-white shadow-sm'
+                    ? 'bg-rose-600 text-white shadow-xs'
                     : 'text-indigo-200 hover:bg-indigo-800 hover:text-white dark:hover:bg-indigo-900/60',
                 )
               }
@@ -71,7 +71,7 @@ export function AdminShell(): JSX.Element {
         {/* Top Header */}
         <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 rounded">Admin Session</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 rounded-sm">Admin Session</span>
             <div className="hidden sm:inline-block text-sm font-medium text-slate-500 dark:text-slate-400 truncate max-w-xs">{user?.email}</div>
           </div>
           <div className="flex items-center gap-3">

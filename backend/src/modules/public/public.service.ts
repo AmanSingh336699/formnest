@@ -18,7 +18,7 @@ import { responses, responseAnswers, fileUploads } from '../../../drizzle/schema
 import { emailQueue } from '../../config/queue';
 import { NotFoundError, ValidationError, ForbiddenError } from '../../lib/AppError';
 import { hashIp } from '../../lib/ipAnonymize';
-import { SUBMIT_GUARDS, PLAN_LIMITS } from '../../lib/constants';
+import { SUBMIT_GUARDS, PLAN_LIMITS, ALLOWED_MIME_TYPES } from '../../lib/constants';
 import { sanitizePlainText } from '../../lib/sanitize';
 import { formsService } from '../forms/forms.service';
 import parsePhoneNumber from 'libphonenumber-js';
@@ -320,9 +320,9 @@ export const publicService = {
 
   async getOwnerPlan(userId: string): Promise<'FREE' | 'PRO' | 'ENTERPRISE'> {
     const [row] = await db
-      .select({ plan: sql<'FREE' | 'PRO' | 'ENTERPRISE'>`plan` })
-      .from(sql`users`)
-      .where(sql`id = ${userId}`)
+      .select({ plan: users.plan })
+      .from(users)
+      .where(eq(users.id, userId))
       .limit(1);
     return row?.plan ?? 'FREE';
   },
@@ -475,22 +475,29 @@ export const publicService = {
     const plan = await this.getOwnerPlan(form.userId);
     const planLimit = Math.min(PLAN_LIMITS[plan].maxFileSizeBytes, CLOUDINARY_MAX_FILE_BYTES);
 
+    if (!ALLOWED_MIME_TYPES.has(params.mimeType)) {
+      throw new ValidationError('Unsupported file type. Only images and standard documents are allowed.', {
+        mimeType: params.mimeType,
+      });
+    }
+
     if (params.sizeBytes > planLimit) {
       throw new ValidationError(`File exceeds maximum allowed size of ${Math.round(planLimit / (1024 * 1024))} MB`, {
         maxBytes: planLimit,
       });
     }
 
+    const safeFilename = params.filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
     const fileId = createId();
     const folder = `formnest/uploads/${form.userId}/${form.id}`;
-    const uploadParams = generateUploadParams(folder, params.filename, fileId, planLimit);
+    const uploadParams = generateUploadParams(folder, safeFilename, fileId, planLimit);
 
     await db.insert(fileUploads).values({
       id: fileId,
       userId: form.userId,
       formId: form.id,
       publicId: uploadParams.publicId,
-      originalName: params.filename,
+      originalName: safeFilename,
       mimeType: params.mimeType,
       sizeBytes: params.sizeBytes,
     });
@@ -509,6 +516,12 @@ export const publicService = {
     const form = (await formsService.getPublicBySlug(formId)) ?? (await this.loadFormById(formId));
     if (!form) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
 
+    if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      throw new ValidationError('Unsupported file type. Only images and standard documents are allowed.', {
+        mimeType: file.mimetype,
+      });
+    }
+
     const plan = await this.getOwnerPlan(form.userId);
     const planLimit = Math.min(PLAN_LIMITS[plan].maxFileSizeBytes, CLOUDINARY_MAX_FILE_BYTES);
 
@@ -518,16 +531,17 @@ export const publicService = {
       });
     }
 
+    const safeFilename = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
     const fileId = createId();
     const folder = `formnest/uploads/${form.userId}/${form.id}`;
-    const uploaded = await uploadBufferToCloudinary(file.buffer, folder, file.originalname, fileId);
+    const uploaded = await uploadBufferToCloudinary(file.buffer, folder, safeFilename, fileId);
 
     await db.insert(fileUploads).values({
       id: fileId,
       userId: form.userId,
       formId: form.id,
       publicId: uploaded.publicId,
-      originalName: file.originalname,
+      originalName: safeFilename,
       mimeType: file.mimetype,
       sizeBytes: file.size,
     });
@@ -536,7 +550,7 @@ export const publicService = {
       id: fileId,
       url: uploaded.url,
       publicId: uploaded.publicId,
-      filename: file.originalname,
+      filename: safeFilename,
       mimeType: file.mimetype,
       sizeBytes: file.size,
     };

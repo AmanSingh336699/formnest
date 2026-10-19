@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { env } from '../config/env';
 
-const MIN_LENGTH = 6;
+const MIN_LENGTH = 8;
 
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, env.BCRYPT_SALT_ROUNDS);

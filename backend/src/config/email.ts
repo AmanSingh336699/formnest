@@ -1,4 +1,4 @@
-import nodemailer, { type Transporter } from 'nodemailer';
+import nodemailer, { type Transporter, type SendMailOptions } from 'nodemailer';
 import Handlebars from 'handlebars';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -83,7 +83,7 @@ async function getGmailAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-async function sendViaGmailApi(mailOptions: nodemailer.SendMailOptions): Promise<void> {
+async function sendViaGmailApi(mailOptions: SendMailOptions): Promise<void> {
   const streamTransporter = nodemailer.createTransport({ streamTransport: true, buffer: true });
   const info = await streamTransporter.sendMail(mailOptions);
   const rawBase64Url = (info.message as Buffer).toString('base64url');

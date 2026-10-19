@@ -115,7 +115,7 @@ export function VerifyEmailPage(): JSX.Element {
   }
 
   return (
-    <Card className="w-full max-w-md dark:bg-gray-800/80 dark:backdrop-blur-sm dark:border-gray-700">
+    <Card className="w-full max-w-md dark:bg-gray-800/80 dark:backdrop-blur-xs dark:border-gray-700">
       <div className="mb-6 text-center">
         {status === 'success' ? (
           <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-emerald-500 dark:text-emerald-400" />

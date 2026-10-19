@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const RegisterBodySchema = z
   .object({
     email: z.string().email().max(255),
-    password: z.string().min(6).max(200),
+    password: z.string().min(8, 'Password must be at least 8 characters long').max(200),
     name: z.string().min(1).max(100),
   })
   .strict();
@@ -39,7 +39,7 @@ export const ForgotPasswordBodySchema = z
 export const ResetPasswordBodySchema = z
   .object({
     token: z.string().min(20).max(200),
-    password: z.string().min(6).max(200),
+    password: z.string().min(8, 'Password must be at least 8 characters long').max(200),
   })
   .strict();
 

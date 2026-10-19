@@ -57,7 +57,7 @@ export function Canvas(): JSX.Element {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Untitled form"
             aria-label="Form title"
-            className="w-full bg-transparent text-2xl font-semibold text-gray-900 outline-none placeholder:text-gray-300"
+            className="w-full bg-transparent text-2xl font-semibold text-gray-900 outline-hidden placeholder:text-gray-300"
           />
           <textarea
             value={description ?? ''}
@@ -65,7 +65,7 @@ export function Canvas(): JSX.Element {
             placeholder="Add a description (optional)"
             aria-label="Form description"
             rows={2}
-            className="w-full resize-none bg-transparent text-sm text-gray-600 outline-none placeholder:text-gray-300"
+            className="w-full resize-none bg-transparent text-sm text-gray-600 outline-hidden placeholder:text-gray-300"
           />
         </div>
 

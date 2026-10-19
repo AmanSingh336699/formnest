@@ -64,7 +64,7 @@ export function PricingPage(): JSX.Element {
                 ))}
               </ul>
               <Link to="/register" className="mt-8 block">
-                <Button fullWidth variant={p.highlighted ? 'primary' : 'outline'}>{p.cta}</Button>
+                <Button fullWidth variant={p.highlighted ? 'primary' : 'outline-solid'}>{p.cta}</Button>
               </Link>
             </div>
           ))}

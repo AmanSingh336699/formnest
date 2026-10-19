@@ -89,7 +89,7 @@ export interface FormTheme {
   textColor?: string;
   primaryColor?: string;
   buttonColor?: string;
-  borderRadius?: 'sharp' | 'rounded' | 'pill';
+  borderRadius?: 'sharp' | 'rounded-sm' | 'pill';
   fontFamily?: 'Inter' | 'Roboto' | 'Poppins';
   logoUrl?: string;
 }

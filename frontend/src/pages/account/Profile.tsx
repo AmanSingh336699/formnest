@@ -77,7 +77,7 @@ export function ProfilePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass((s) => !s)}
-                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
                   aria-label={showCurrentPass ? 'Hide current password' : 'Show current password'}
                 >
                   {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -96,7 +96,7 @@ export function ProfilePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={() => setShowNewPass((s) => !s)}
-                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
+                  className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500/30 dark:text-slate-400 dark:hover:text-slate-200"
                   aria-label={showNewPass ? 'Hide new password' : 'Show new password'}
                 >
                   {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}

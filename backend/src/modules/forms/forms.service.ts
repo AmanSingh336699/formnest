@@ -175,7 +175,11 @@ export const formsService = {
     if (body.customSlug !== undefined) updatePayload.customSlug = body.customSlug;
 
     const result = await db.transaction(async (tx) => {
-      const [updated] = await tx.update(forms).set(updatePayload).where(eq(forms.id, formId)).returning();
+      const [updated] = await tx
+        .update(forms)
+        .set(updatePayload)
+        .where(and(eq(forms.id, formId), eq(forms.userId, user.id)))
+        .returning();
       if (!updated) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
 
       let allFields: FormField[];
@@ -242,7 +246,7 @@ export const formsService = {
     const [updated] = await db
       .update(forms)
       .set({ status: 'PUBLISHED', publishedAt: new Date(), updatedAt: new Date() })
-      .where(eq(forms.id, formId))
+      .where(and(eq(forms.id, formId), eq(forms.userId, user.id)))
       .returning();
 
     if (!updated) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
@@ -266,7 +270,7 @@ export const formsService = {
     const [updated] = await db
       .update(forms)
       .set({ status: 'CLOSED', closedAt: new Date(), updatedAt: new Date() })
-      .where(eq(forms.id, formId))
+      .where(and(eq(forms.id, formId), eq(forms.userId, user.id)))
       .returning();
     if (!updated) throw new NotFoundError('Form not found', 'FORM_NOT_FOUND');
 
@@ -284,7 +288,7 @@ export const formsService = {
 
   async delete(user: AuthenticatedUser, formId: string, ctx: { ip: string | null; ua: string | null }): Promise<void> {
     const form = await this.getByIdForUser(formId, user.id, false);
-    await db.delete(forms).where(eq(forms.id, formId));
+    await db.delete(forms).where(and(eq(forms.id, formId), eq(forms.userId, user.id)));
     await invalidateFormCache(form.slug, form.customSlug);
 
     await recordAudit({
