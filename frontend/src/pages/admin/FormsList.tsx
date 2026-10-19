@@ -101,10 +101,10 @@ export default function FormsList(): JSX.Element {
           <div className="p-8 space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-4 items-center">
-                <div className="h-6 w-1/3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-6 w-1/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-6 w-1/12 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-6 w-1/6 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-6 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
+                <div className="h-6 w-1/4 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
+                <div className="h-6 w-1/12 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
+                <div className="h-6 w-1/6 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
               </div>
             ))}
           </div>

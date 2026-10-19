@@ -170,7 +170,7 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
             <p className="text-xs text-gray-600 dark:text-slate-300">
               Files are directly & securely uploaded to Cloudinary.
             </p>
-            <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300">
+            <div className="rounded-sm border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300">
               Max file size limit: <strong>10 MB</strong>
             </div>
           </div>
@@ -420,14 +420,14 @@ function ChoiceEditor({ field, onUpdate }: ChoiceEditorProps): JSX.Element {
               type="text"
               value={c.label}
               onChange={(e) => setLabel(i, e.target.value)}
-              className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
               maxLength={200}
             />
             <button
               type="button"
               onClick={() => remove(i)}
               aria-label="Remove choice"
-              className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+              className="rounded-sm p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
               disabled={choices.length <= 1}
             >
               <Trash2 className="h-4 w-4" />

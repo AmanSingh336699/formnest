@@ -131,7 +131,7 @@ export default function UserDetail(): JSX.Element {
   if (loading && !detail) {
     return (
       <div className="p-8 space-y-6">
-        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="h-96 md:col-span-1"><Skeleton className="h-full w-full" /></Card>
           <Card className="h-96 md:col-span-2"><Skeleton className="h-full w-full" /></Card>
@@ -215,7 +215,7 @@ export default function UserDetail(): JSX.Element {
                 </div>
               )}
               {user.isSuspended && user.suspendedReason && (
-                <div className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 p-2.5 rounded border border-red-100 dark:border-red-950/40 text-[11px] mt-2">
+                <div className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 p-2.5 rounded-sm border border-red-100 dark:border-red-950/40 text-[11px] mt-2">
                   <div className="font-bold flex items-center gap-1">
                     <ShieldAlert className="h-3 w-3" />
                     <span>Suspension Reason:</span>

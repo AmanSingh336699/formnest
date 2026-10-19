@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { forms, formFields, type FormField } from '../../../drizzle/schema/forms';
 import { responses, responseAnswers } from '../../../drizzle/schema/responses';
@@ -19,6 +19,14 @@ function escapeCsvCell(value: unknown): string {
   } else {
     str = String(value);
   }
+
+  // Prevent CSV Formula Injection (CWE-1236 / OWASP CSV Injection):
+  // If the cell begins with formula trigger chars (=, +, -, @, tab, cr),
+  // prepend a single quote to prevent spreadsheet software from evaluating formulas/DDE.
+  if (/^[=+\-@\t\r%]/.test(str)) {
+    str = `'${str}`;
+  }
+
   if (/[",\n\r]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -66,7 +74,7 @@ export const exportsService = {
     const answers = await db
       .select()
       .from(responseAnswers)
-      .where(sql`${responseAnswers.responseId} IN (${sql.join(responseIds.map((id) => sql`${id}`), sql`, `)})`);
+      .where(inArray(responseAnswers.responseId, responseIds));
 
     // Map: responseId -> fieldId -> value
     const answerMap = new Map<string, Map<string, unknown>>();

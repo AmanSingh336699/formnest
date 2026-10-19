@@ -58,7 +58,7 @@ export function FormSharePage(): JSX.Element {
       ) : (
         <div className="space-y-6">
           {/* Main Share Link Card */}
-          <Card className="border-brand-200 dark:border-brand-500/30 bg-gradient-to-br from-white to-brand-50/30 dark:from-slate-900 dark:to-slate-900/80 p-6 shadow-sm">
+          <Card className="border-brand-200 dark:border-brand-500/30 bg-linear-to-br from-white to-brand-50/30 dark:from-slate-900 dark:to-slate-900/80 p-6 shadow-xs">
             <div className="flex items-center gap-2 mb-3">
               <Globe className="h-5 w-5 text-brand-600 dark:text-brand-400" />
               <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -73,7 +73,7 @@ export function FormSharePage(): JSX.Element {
               <input
                 readOnly
                 value={publicUrl}
-                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm text-slate-800 shadow-inner focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm text-slate-800 shadow-inner focus:outline-hidden dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
               />
               <div className="flex items-center gap-2">
                 <Button

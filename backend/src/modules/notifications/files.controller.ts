@@ -18,21 +18,7 @@ const UploadUrlBodySchema = z
   })
   .strict();
 
-const ALLOWED_MIME = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'image/svg+xml',
-  'application/pdf',
-  'text/plain',
-  'text/csv',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]);
+import { ALLOWED_MIME_TYPES } from '../../lib/constants';
 
 export const filesController = {
   async createUploadUrl(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -46,7 +32,7 @@ export const filesController = {
           maxBytes: planLimit,
         });
       }
-      if (!ALLOWED_MIME.has(body.mimeType)) {
+      if (!ALLOWED_MIME_TYPES.has(body.mimeType)) {
         throw new ValidationError('Unsupported file type. Only images and standard documents are allowed.', { mimeType: body.mimeType });
       }
 

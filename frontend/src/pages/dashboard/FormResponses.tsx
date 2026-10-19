@@ -33,10 +33,10 @@ function fmtShort(iso: string) {
 
 function EmptyDetail() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 text-center px-8 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors duration-200">
+    <div className="flex h-full flex-col items-center justify-center gap-5 text-center px-8 bg-linear-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors duration-200">
       <div className="relative">
         <div className="absolute -inset-4 rounded-full bg-brand-100/50 dark:bg-brand-500/10 blur-xl animate-pulse"></div>
-        <div className="relative rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700">
+        <div className="relative rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xs ring-1 ring-gray-200 dark:ring-gray-700">
           <Inbox className="h-10 w-10 text-brand-500 dark:text-brand-400" />
         </div>
       </div>
@@ -52,7 +52,7 @@ function EmptyDetail() {
 
 function MetaPill({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 shadow-sm px-4 py-3 flex-1 min-w-0 transition-colors hover:border-brand-200 dark:hover:border-brand-500/30">
+    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 shadow-xs px-4 py-3 flex-1 min-w-0 transition-colors hover:border-brand-200 dark:hover:border-brand-500/30">
       <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
         <Icon className="h-3 w-3 shrink-0" />
         {label}
@@ -99,7 +99,7 @@ function AnswerCard({
           wide ? 'col-span-2' : 'col-span-1'
         }`}
       >
-        <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand-400 to-brand-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-brand-500 dark:to-brand-400" />
+        <div className="absolute left-0 top-0 h-full w-1 bg-linear-to-b from-brand-400 to-brand-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-brand-500 dark:to-brand-400" />
         <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{label}</p>
         <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-800 dark:bg-gray-800/60">
           {isImg ? (
@@ -132,7 +132,7 @@ function AnswerCard({
     <div
       className={`group relative overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-5 py-4 transition-all duration-200 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-500/30 hover:-translate-y-0.5 ${wide ? 'col-span-2' : 'col-span-1'}`}
     >
-      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand-400 to-brand-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-brand-500 dark:to-brand-400" />
+      <div className="absolute left-0 top-0 h-full w-1 bg-linear-to-b from-brand-400 to-brand-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-brand-500 dark:to-brand-400" />
       <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{label}</p>
       <p className={`whitespace-pre-wrap text-sm leading-relaxed font-medium ${empty ? 'text-gray-300 dark:text-gray-600 italic' : 'text-gray-800 dark:text-gray-200'}`}>
         {empty ? 'No answer' : value}
@@ -255,7 +255,7 @@ export function FormResponsesPage(): JSX.Element {
             <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
               <Search className="h-3.5 w-3.5 shrink-0 text-gray-400" />
               <input
-                className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+                className="w-full bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-hidden"
                 placeholder="Search response ID…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -297,7 +297,7 @@ export function FormResponsesPage(): JSX.Element {
                         onClick={() => setOpenId(r.id)}
                         className={`w-full rounded-lg px-3.5 py-3 text-left transition-all
                           ${isActive
-                            ? 'bg-brand-50 border border-brand-200 shadow-sm dark:bg-brand-500/10 dark:border-brand-500/30'
+                            ? 'bg-brand-50 border border-brand-200 shadow-xs dark:bg-brand-500/10 dark:border-brand-500/30'
                             : 'hover:bg-gray-50 border border-transparent dark:hover:bg-gray-800'
                           }`}
                       >
@@ -446,7 +446,7 @@ export function FormResponsesPage(): JSX.Element {
                             : 'Direct'
                         }
                       />
-                      <div className="flex flex-col gap-1 rounded-xl border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 px-4 py-3 flex-1 min-w-0 shadow-sm transition-colors hover:border-brand-200 dark:hover:border-brand-500/30">
+                      <div className="flex flex-col gap-1 rounded-xl border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 px-4 py-3 flex-1 min-w-0 shadow-xs transition-colors hover:border-brand-200 dark:hover:border-brand-500/30">
                         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                           {detail.isSpam
                             ? <AlertTriangle className="h-3 w-3 text-red-400" />

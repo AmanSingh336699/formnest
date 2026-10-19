@@ -4,7 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 
-import { env } from './config/env';
+import { env, isProd } from './config/env';
 import { logger } from './config/logger';
 import { checkDatabaseHealth } from './config/database';
 import { checkRedisHealth } from './config/redis';
@@ -36,13 +36,28 @@ export function createApp(): Application {
 
   app.set('trust proxy', 1);
 
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+          baseUri: ["'none'"],
+        },
+      },
+      frameguard: { action: 'deny' },
+      xContentTypeOptions: true,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      hsts: isProd ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
+      hidePoweredBy: true,
+    }),
+  );
   app.use(
     cors({
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
         if (env.ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-        return callback(new Error(`Origin ${origin} not allowed by CORS`));
+        return callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

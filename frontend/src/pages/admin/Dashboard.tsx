@@ -29,7 +29,7 @@ export default function Dashboard(): JSX.Element {
   if (loading) {
     return (
       <div className="p-8 space-y-6">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-sm animate-pulse" />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="p-6">

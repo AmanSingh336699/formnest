@@ -305,20 +305,37 @@ export const authService = {
     const [existing] = await db
       .select()
       .from(refreshTokens)
-      .where(
-        and(
-          eq(refreshTokens.tokenHash, tokenHash),
-          isNull(refreshTokens.revokedAt),
-          gt(refreshTokens.expiresAt, new Date()),
-        ),
-      )
+      .where(eq(refreshTokens.tokenHash, tokenHash))
       .limit(1);
 
-    if (!existing)
+    if (!existing) {
       throw new UnauthorizedError(
         "Invalid or expired refresh token",
         "TOKEN_INVALID",
       );
+    }
+
+    if (existing.revokedAt !== null) {
+      // RFC 6819 Refresh Token Reuse Detection:
+      // If a revoked token is presented, it indicates potential token theft/replay attack.
+      // Immediately invalidate all active sessions for this user to protect the account.
+      await this.revokeAllUserSessions(existing.userId);
+      logger.warn(
+        { userId: existing.userId, ip: params.ip },
+        "SECURITY: Refresh token reuse detected! Revoked all sessions for user.",
+      );
+      throw new UnauthorizedError(
+        "Token reuse detected. All sessions have been revoked for your security. Please log in again.",
+        "TOKEN_REUSED",
+      );
+    }
+
+    if (existing.expiresAt <= new Date()) {
+      throw new UnauthorizedError(
+        "Refresh token expired",
+        "TOKEN_EXPIRED",
+      );
+    }
 
     const [user] = await db
       .select()

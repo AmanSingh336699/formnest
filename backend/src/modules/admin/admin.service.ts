@@ -5,7 +5,7 @@ import { forms } from '../../../drizzle/schema/forms';
 import { responses } from '../../../drizzle/schema/responses';
 import { refreshTokens } from '../../../drizzle/schema/users';
 import { recordAudit } from '../../lib/auditLog';
-import { NotFoundError } from '../../lib/AppError';
+import { NotFoundError, ValidationError } from '../../lib/AppError';
 import { authService } from '../auth/auth.service';
 
 export const adminService = {
@@ -202,6 +202,10 @@ export const adminService = {
   },
 
   async suspendUser(adminId: string, userId: string, reason: string, ctx: { ip: string | null; ua: string | null }) {
+    if (adminId === userId) {
+      throw new ValidationError('Admins cannot suspend their own account');
+    }
+
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new NotFoundError('User not found');
 

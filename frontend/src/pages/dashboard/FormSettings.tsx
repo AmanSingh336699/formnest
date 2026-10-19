@@ -69,7 +69,7 @@ export function FormSettingsPage(): JSX.Element {
         <div className="flex items-center gap-3">
           <Link
             to={`/dashboard/forms/${id}`}
-            className="rounded-lg p-2 text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 focus:outline-none focus:ring-1 focus:ring-slate-300 dark:focus:ring-slate-700"
+            className="rounded-lg p-2 text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-slate-300 dark:focus:ring-slate-700"
             title="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -106,7 +106,7 @@ export function FormSettingsPage(): JSX.Element {
         {/* Left Column: URL & Notifications */}
         <div className="space-y-6 lg:col-span-5">
           {/* URL Configurations Card */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-sm">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-xs">
             <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">URL Configurations</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Set up a clean custom slug for sharing your form.</p>
             <Input
@@ -120,7 +120,7 @@ export function FormSettingsPage(): JSX.Element {
           </Card>
 
           {/* Notifications Card */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-sm">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-xs">
             <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Notifications</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Keep track of incoming responses in real-time.</p>
             <div className="mt-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 p-3 border border-slate-100 dark:border-slate-800/60">
@@ -136,7 +136,7 @@ export function FormSettingsPage(): JSX.Element {
 
         {/* Right Column: Submission Controls */}
         <div className="lg:col-span-7">
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-sm space-y-4">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 rounded-xl shadow-xs space-y-4">
             <div>
               <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Submission Handling</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">Configure what users see and where they go after completing the form.</p>

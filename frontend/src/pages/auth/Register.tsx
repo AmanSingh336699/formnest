@@ -92,7 +92,7 @@ export function RegisterPage(): JSX.Element {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
+              className="inline-flex items-center justify-center rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed dark:text-slate-400 dark:hover:text-slate-200"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               disabled={!password}
             >

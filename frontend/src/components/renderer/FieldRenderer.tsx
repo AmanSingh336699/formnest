@@ -24,8 +24,8 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const baseInput = cn(
-    'block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm shadow-sm transition-colors',
-    'placeholder:text-gray-400 focus:outline-none focus:ring-2',
+    'block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm shadow-xs transition-colors',
+    'placeholder:text-gray-400 focus:outline-hidden focus:ring-2',
     error ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : 'focus:border-brand-500 focus:ring-brand-500/20',
     disabled && 'bg-gray-50 cursor-not-allowed',
   );
@@ -60,7 +60,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                 disabled={disabled}
                 aria-label={passwordVisible ? 'Hide password' : 'Show password'}
                 aria-pressed={passwordVisible}
-                className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 {passwordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -167,7 +167,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                     onFocus={onFocus}
                     disabled={disabled}
                     style={accentStyle}
-                    className="h-4 w-4 rounded text-brand-600 focus:ring-brand-500"
+                    className="h-4 w-4 rounded-sm text-brand-600 focus:ring-brand-500"
                   />
                   <span className="text-sm text-gray-700" style={labelStyle}>{c.label}</span>
                 </label>
@@ -215,7 +215,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
                 disabled={disabled}
                 aria-label={`Rate ${n} of ${max}`}
                 aria-pressed={current === n}
-                className="rounded p-1 transition-colors hover:bg-amber-50 focus:outline-none dark:hover:bg-amber-950/30 focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="rounded-sm p-1 transition-colors hover:bg-amber-50 focus:outline-hidden dark:hover:bg-amber-950/30 focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <Icon
                   className={cn('h-7 w-7 transition-colors', n <= current ? 'fill-amber-400 text-amber-400' : 'text-gray-300')}
@@ -285,7 +285,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
   if (field.type === 'HEADING') {
     return (
       <div className="border-b border-gray-200 pb-2 pt-2">
-        <h2 className="break-words text-lg font-semibold" style={primaryColor ? { color: primaryColor } : labelStyle}>{field.label}</h2>
+        <h2 className="wrap-break-word text-lg font-semibold" style={primaryColor ? { color: primaryColor } : labelStyle}>{field.label}</h2>
         {field.helpText && <p className="mt-1 text-sm text-gray-500">{field.helpText}</p>}
       </div>
     );
@@ -297,7 +297,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
 
   return (
     <div className="space-y-2">
-      <label id={`${inputId}-label`} htmlFor={inputId} className="block break-words text-sm font-medium text-gray-900" style={labelStyle}>
+      <label id={`${inputId}-label`} htmlFor={inputId} className="block wrap-break-word text-sm font-medium text-gray-900" style={labelStyle}>
         {field.label}
         {field.required && <span className="ml-0.5 text-red-500" aria-hidden>*</span>}
       </label>

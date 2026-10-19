@@ -88,7 +88,7 @@ export function FieldPalette({ onCloseMobile, isMobileDrawer }: FieldPaletteProp
                     key={item.type}
                     type="button"
                     onClick={() => handleAddField(item.type, item.label)}
-                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-brand-50 hover:text-brand-700 focus:outline-none focus-visible:bg-brand-50 dark:text-slate-200 dark:hover:bg-brand-500/15 dark:hover:text-brand-300"
+                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-brand-50 hover:text-brand-700 focus:outline-hidden focus-visible:bg-brand-50 dark:text-slate-200 dark:hover:bg-brand-500/15 dark:hover:text-brand-300"
                   >
                     <item.icon className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-400" />
                     <span className="font-medium">{item.label}</span>
