@@ -55,10 +55,32 @@ export function ProfilePage(): JSX.Element {
             <h2 className="text-base font-semibold text-slate-950 dark:text-slate-100">Account details</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your public name and sign-in email.</p>
           </div>
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Email" value={user?.email ?? ''} disabled helpText="Email cannot be changed yet" />
+          <Input
+            label="Name"
+            placeholder="e.g. Alex Johnson"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            label="Email"
+            placeholder="name@example.com"
+            value={user?.email ?? ''}
+            disabled
+            helpText="Email cannot be changed yet"
+          />
           <div className="flex justify-end">
-            <Button onClick={() => saveMut.mutate()} loading={saveMut.isPending}>Save</Button>
+            <Button
+              onClick={() => {
+                if (!name.trim()) {
+                  toast.error('Please enter your full name');
+                  return;
+                }
+                saveMut.mutate();
+              }}
+              loading={saveMut.isPending}
+            >
+              Save
+            </Button>
           </div>
         </Card>
 
@@ -71,6 +93,7 @@ export function ProfilePage(): JSX.Element {
             <Input
               type={showCurrentPass ? 'text' : 'password'}
               label="Current password"
+              placeholder="Enter current password"
               value={currentPass}
               onChange={(e) => setCurrentPass(e.target.value)}
               rightElement={
@@ -89,9 +112,10 @@ export function ProfilePage(): JSX.Element {
             <Input
               type={showNewPass ? 'text' : 'password'}
               label="New password"
+              placeholder="Enter new strong password"
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
-              helpText="Min 6 chars with 3 of: uppercase, lowercase, digit, symbol"
+              helpText="Min 8 chars with 3 of: uppercase, lowercase, digit, symbol"
               rightElement={
                 <button
                   type="button"
@@ -107,7 +131,30 @@ export function ProfilePage(): JSX.Element {
           </div>
           <div className="flex justify-end">
             <Button
-              onClick={() => passMut.mutate()}
+              onClick={() => {
+                if (!currentPass) {
+                  toast.error('Please enter your current password');
+                  return;
+                }
+                if (!newPass) {
+                  toast.error('Please enter your new password');
+                  return;
+                }
+                if (newPass.length < 8) {
+                  toast.error('New password must be at least 8 characters long');
+                  return;
+                }
+                const checks = [/[A-Z]/, /[a-z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(newPass)).length;
+                if (checks < 3) {
+                  toast.error('New password must contain at least 3 of: uppercase, lowercase, digit, symbol');
+                  return;
+                }
+                if (currentPass === newPass) {
+                  toast.error('New password must be different from current password');
+                  return;
+                }
+                passMut.mutate();
+              }}
               loading={passMut.isPending}
               disabled={!currentPass || !newPass}
             >

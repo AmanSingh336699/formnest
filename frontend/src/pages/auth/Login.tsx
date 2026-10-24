@@ -25,12 +25,28 @@ export function LoginPage(): JSX.Element {
   const sessionExpired = params.get("session") === "expired";
   const justVerified = params.get("verified") === "true";
 
+  function validate(): boolean {
+    const next: typeof errors = {};
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      next.email = 'Please enter your email address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      next.email = 'Please enter a valid email address (e.g. name@example.com)';
+    }
+    if (!password) {
+      next.password = 'Please enter your password';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
+    if (!validate()) return;
     setErrors({});
     setLoading(true);
     try {
-      const { user, accessToken } = await authApi.login(email, password);
+      const { user, accessToken } = await authApi.login(email.trim(), password);
       setSession(user, accessToken);
       if (!user.emailVerified) {
         toast.success("Enter the OTP sent to your email.");
@@ -46,7 +62,7 @@ export function LoginPage(): JSX.Element {
         navigate("/dashboard");
       }
     } catch (err) {
-      const message = (err as NormalizedError)?.message ?? "Login failed";
+      const message = (err as NormalizedError)?.message ?? "Invalid email or password. Please try again.";
       setErrors({ form: message });
     } finally {
       setLoading(false);
@@ -85,8 +101,13 @@ export function LoginPage(): JSX.Element {
         <Input
           type="email"
           label="Email"
+          placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            if (errors.form) setErrors((prev) => ({ ...prev, form: undefined }));
+          }}
           autoComplete="email"
           required
           error={errors.email}
@@ -94,8 +115,13 @@ export function LoginPage(): JSX.Element {
         <Input
           type={showPassword ? "text" : "password"}
           label="Password"
+          placeholder="Enter your password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+            if (errors.form) setErrors((prev) => ({ ...prev, form: undefined }));
+          }}
           autoComplete="current-password"
           required
           error={errors.password}

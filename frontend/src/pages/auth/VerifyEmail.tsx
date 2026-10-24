@@ -45,12 +45,12 @@ export function VerifyEmailPage(): JSX.Element {
     const normalizedOtp = otp.replace(/\D/g, '');
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setErrorMsg('Enter the email you used during signup.');
+      setErrorMsg('Please enter the email address used during sign up.');
       setStatus('error');
       return;
     }
     if (!/^\d{6}$/.test(normalizedOtp)) {
-      setErrorMsg('Enter the 6 digit OTP from your email.');
+      setErrorMsg('Please enter the 6-digit verification code sent to your email.');
       setStatus('error');
       return;
     }
@@ -61,18 +61,18 @@ export function VerifyEmailPage(): JSX.Element {
       await authApi.verifyEmail({ email: normalizedEmail, otp: normalizedOtp });
       if (user) setUser({ ...user, emailVerified: true });
       setStatus('success');
-      toast.success('Email verified! Please sign in.');
+      toast.success('Email verified successfully! Please sign in.');
       navigate('/login?verified=true', { replace: true });
     } catch (err) {
       setStatus('error');
-      setErrorMsg((err as NormalizedError)?.message ?? 'Verification failed');
+      setErrorMsg((err as NormalizedError)?.message ?? 'Verification failed. The code may be incorrect or expired.');
     }
   }
 
   async function handleResend(): Promise<void> {
     const normalizedEmail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setErrorMsg('Enter a valid email before requesting a new OTP.');
+      setErrorMsg('Please enter a valid email address before requesting a new code.');
       setStatus('error');
       return;
     }
@@ -81,10 +81,10 @@ export function VerifyEmailPage(): JSX.Element {
     setErrorMsg('');
     try {
       await authApi.resendVerification(normalizedEmail);
-      toast.success('New OTP sent to your email');
+      toast.success('A new 6-digit code has been sent to your email.');
     } catch (err) {
       setStatus('error');
-      setErrorMsg((err as NormalizedError)?.message ?? 'Could not resend OTP');
+      setErrorMsg((err as NormalizedError)?.message ?? 'Could not resend verification code. Please try again later.');
     } finally {
       setResending(false);
     }
@@ -124,7 +124,7 @@ export function VerifyEmailPage(): JSX.Element {
         )}
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Verify your email</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Enter the 6 digit OTP sent to your inbox.
+          Enter the 6-digit code sent to your inbox.
         </p>
       </div>
 
@@ -141,19 +141,27 @@ export function VerifyEmailPage(): JSX.Element {
         <Input
           type="email"
           label="Email"
+          placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errorMsg) setErrorMsg('');
+          }}
           autoComplete="email"
           required
           className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         />
         <Input
           label="OTP"
+          placeholder="123456"
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={6}
           value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onChange={(e) => {
+            setOtp(e.target.value.replace(/\D/g, '').slice(0, 6));
+            if (errorMsg) setErrorMsg('');
+          }}
           autoComplete="one-time-code"
           className="text-center font-mono text-lg tracking-[0.35em] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           required
