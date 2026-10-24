@@ -11,12 +11,15 @@ import {
   type EmailTemplateVariables,
 } from '../lib/emailTemplates';
 
-const transporter: Transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: env.SMTP_PORT === 465,
-  auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
-});
+const transporter: Transporter | null =
+  env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS
+    ? nodemailer.createTransport({
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        secure: env.SMTP_PORT === 465,
+        auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+      })
+    : null;
 
 const templateCache = new Map<EmailTemplateName, HandlebarsTemplateDelegate>();
 
@@ -127,8 +130,13 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
     }
   }
 
-  await transporter.sendMail(mailOptions);
-  logger.info({ to: params.to, template: params.template }, 'Email sent via SMTP');
+  if (transporter) {
+    await transporter.sendMail(mailOptions);
+    logger.info({ to: params.to, template: params.template }, 'Email sent via SMTP');
+    return;
+  }
+
+  throw new Error('No working email transport configured. Please configure Gmail API or SMTP credentials.');
 }
 
 export function validateEmailTemplates(): void {
@@ -148,11 +156,15 @@ export async function verifyEmailTransport(): Promise<boolean> {
     }
   }
 
-  try {
-    await transporter.verify();
-    return true;
-  } catch (err) {
-    logger.error({ err }, 'SMTP verification failed');
-    return false;
+  if (transporter) {
+    try {
+      await transporter.verify();
+      return true;
+    } catch (err) {
+      logger.error({ err }, 'SMTP verification failed');
+      return false;
+    }
   }
+
+  return true;
 }
