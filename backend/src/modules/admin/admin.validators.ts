@@ -38,3 +38,11 @@ export const ListFormsQuerySchema = z.object({
   page: z.preprocess((val) => (val ? parseInt(val as string, 10) : 1), z.number().int().min(1).default(1)),
   limit: z.preprocess((val) => (val ? parseInt(val as string, 10) : 20), z.number().int().min(1).max(100).default(20)),
 });
+
+export const ListAuditLogsQuerySchema = z.object({
+  page: z.preprocess((val) => (val ? parseInt(val as string, 10) : 1), z.number().int().min(1).default(1)),
+  limit: z.preprocess((val) => (val ? parseInt(val as string, 10) : 20), z.number().int().min(1).max(100).default(20)),
+  action: z.string().optional(),
+  userId: z.string().optional(),
+  entityType: z.string().optional(),
+});

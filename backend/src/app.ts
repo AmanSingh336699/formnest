@@ -14,6 +14,7 @@ import { requestLoggerMiddleware } from './middleware/requestLogger.middleware';
 import { errorMiddleware } from './middleware/error.middleware';
 import { notFoundMiddleware } from './middleware/notFound.middleware';
 import { apiRateLimiter } from './middleware/rateLimiter.middleware';
+import { optionalAuth } from './middleware/auth.middleware';
 
 import { authRoutes } from './modules/auth/auth.routes';
 import { formsRoutes } from './modules/forms/forms.routes';
@@ -97,7 +98,8 @@ export function createApp(): Application {
   // Auth
   app.use('/api/v1/auth', authRoutes);
 
-  // Authenticated APIs
+  // Authenticated APIs (resolve auth context if present, then rate limit)
+  app.use('/api/v1', optionalAuth);
   app.use('/api/v1', apiRateLimiter);
 
   app.use('/api/v1/forms', formsRoutes);

@@ -27,6 +27,8 @@ export const RATE_LIMITS = {
   API_FREE: { points: 100, durationSec: 60 },
   API_PRO: { points: 1000, durationSec: 60 },
   API_ENTERPRISE: { points: 5000, durationSec: 60 },
+  ADMIN_API: { points: 2000, durationSec: 60 },
+  ADMIN_ACTION: { points: 20, durationSec: 60 },
 } as const;
 
 export const LOGIN_FAILURE_LOCK = {

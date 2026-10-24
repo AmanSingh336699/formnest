@@ -61,12 +61,30 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
 }
 
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
-  const token = extractBearer(req.headers.authorization);
-  if (!token) {
+  try {
+    const token = extractBearer(req.headers.authorization);
+    if (!token) {
+      return next();
+    }
+    const payload = verifyAccessToken(token);
+    const [user] = await db.select().from(users).where(eq(users.id, payload.sub)).limit(1);
+    if (user && !user.isSuspended) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        plan: user.plan,
+        emailVerified: user.emailVerified,
+        isSuspended: user.isSuspended,
+        isAdmin: user.isAdmin,
+        sessionId: payload.sid,
+      };
+    }
     next();
-    return;
+  } catch {
+    // In optionalAuth, continue silently so subsequent route-level guards can strictly enforce access
+    next();
   }
-  await requireAuth(req, _res, next);
 }
 
 export function requireVerifiedEmail(req: Request, _res: Response, next: NextFunction): void {
