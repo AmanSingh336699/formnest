@@ -16,6 +16,8 @@ const envSchema = z.object({
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
   API_KEY_PEPPER: z.string().min(16, 'API_KEY_PEPPER must be ≥16 chars'),
   WEBHOOK_HMAC_SECRET: z.string().min(16),
+  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_PASSWORD: z.string().min(8).optional(),
 
   SMTP_HOST: z.string(),
   SMTP_PORT: z.coerce.number().int().positive().default(587),
@@ -51,7 +53,7 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   // Cannot use logger yet — env not validated. Use process.stderr directly.
-  process.stderr.write('❌ Invalid environment variables:\n');
+  process.stderr.write('Invalid environment variables:\n');
   process.stderr.write(JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
   process.stderr.write('\n');
   process.exit(1);

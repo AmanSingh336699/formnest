@@ -138,4 +138,13 @@ export const adminController = {
       next(err);
     }
   },
+
+  async listAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const data = await adminService.listAuditLogs(req.query as any);
+      success(res, data);
+    } catch (err) {
+      next(err);
+    }
+  },
 };

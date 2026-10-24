@@ -4,6 +4,7 @@ import { users } from '../../../drizzle/schema/users';
 import { forms } from '../../../drizzle/schema/forms';
 import { responses } from '../../../drizzle/schema/responses';
 import { refreshTokens } from '../../../drizzle/schema/users';
+import { auditLogs } from '../../../drizzle/schema/auditLogs';
 import { recordAudit } from '../../lib/auditLog';
 import { NotFoundError, ValidationError } from '../../lib/AppError';
 import { authService } from '../auth/auth.service';
@@ -307,6 +308,57 @@ export const adminService = {
         .select({ count: sql<number>`count(*)::int` })
         .from(forms)
         .leftJoin(users, eq(forms.userId, users.id))
+        .where(where),
+    ]);
+
+    const total = totalResult[0]?.count ?? 0;
+    return { items, total, page: params.page, limit: params.limit };
+  },
+
+  async listAuditLogs(params: {
+    page: number;
+    limit: number;
+    action?: string;
+    userId?: string;
+    entityType?: string;
+  }) {
+    const offset = (params.page - 1) * params.limit;
+    const conditions = [];
+
+    if (params.action) {
+      conditions.push(eq(auditLogs.action, params.action as any));
+    }
+    if (params.userId) {
+      conditions.push(eq(auditLogs.userId, params.userId));
+    }
+    if (params.entityType) {
+      conditions.push(eq(auditLogs.entityType, params.entityType));
+    }
+
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [items, totalResult] = await Promise.all([
+      db
+        .select({
+          id: auditLogs.id,
+          userId: auditLogs.userId,
+          userEmail: users.email,
+          userName: users.name,
+          entityType: auditLogs.entityType,
+          entityId: auditLogs.entityId,
+          action: auditLogs.action,
+          diff: auditLogs.diff,
+          createdAt: auditLogs.createdAt,
+        })
+        .from(auditLogs)
+        .leftJoin(users, eq(auditLogs.userId, users.id))
+        .where(where)
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(params.limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditLogs)
         .where(where),
     ]);
 

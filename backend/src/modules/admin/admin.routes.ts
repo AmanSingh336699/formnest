@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { adminController } from './admin.controller';
 import { requireAuth, requireAdmin } from '../../middleware/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
+import { adminActionLimiter } from '../../middleware/rateLimiter.middleware';
 import {
   UserListQuerySchema,
   ChangeUserPlanSchema,
@@ -10,6 +11,7 @@ import {
   VerifyEmailSchema,
   UserIdParamsSchema,
   ListFormsQuerySchema,
+  ListAuditLogsQuerySchema,
 } from './admin.validators';
 
 const router = Router();
@@ -43,24 +45,28 @@ router.post(
 
 router.patch(
   '/users/:userId/plan',
+  adminActionLimiter,
   validate({ params: UserIdParamsSchema, body: ChangeUserPlanSchema }),
   adminController.changePlan,
 );
 
 router.post(
   '/users/:userId/suspend',
+  adminActionLimiter,
   validate({ params: UserIdParamsSchema, body: SuspendUserSchema }),
   adminController.suspendUser,
 );
 
 router.post(
   '/users/:userId/unsuspend',
+  adminActionLimiter,
   validate({ params: UserIdParamsSchema, body: UnsuspendUserSchema }),
   adminController.unsuspendUser,
 );
 
 router.post(
   '/users/:userId/revoke-sessions',
+  adminActionLimiter,
   validate({ params: UserIdParamsSchema, body: SuspendUserSchema }),
   adminController.revokeAllSessions,
 );
@@ -72,5 +78,7 @@ router.get(
 );
 
 router.get('/forms', validate({ query: ListFormsQuerySchema }), adminController.listForms);
+
+router.get('/audit-logs', validate({ query: ListAuditLogsQuerySchema }), adminController.listAuditLogs);
 
 export { router as adminRoutes };

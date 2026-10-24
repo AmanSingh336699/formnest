@@ -110,18 +110,27 @@ export const publicSubmitLimiter = createRateLimiter({
 });
 
 export function apiRateLimiter(req: Request, res: Response, next: NextFunction): void {
+  const isAdmin = req.user?.isAdmin ?? false;
   const plan = req.user?.plan ?? 'FREE';
-  const limits =
-    plan === 'ENTERPRISE'
+  const limits = isAdmin
+    ? RATE_LIMITS.ADMIN_API
+    : plan === 'ENTERPRISE'
       ? RATE_LIMITS.API_ENTERPRISE
       : plan === 'PRO'
         ? RATE_LIMITS.API_PRO
         : RATE_LIMITS.API_FREE;
 
+  const keyPrefix = isAdmin ? 'api:admin' : `api:${plan.toLowerCase()}`;
   const limiter = createRateLimiter({
     ...limits,
-    keyPrefix: `api:${plan.toLowerCase()}`,
+    keyPrefix,
     identifierFn: (r) => r.user?.id ?? r.ip ?? 'unknown',
   });
   void limiter(req, res, next);
 }
+
+export const adminActionLimiter = createRateLimiter({
+  ...RATE_LIMITS.ADMIN_ACTION,
+  keyPrefix: 'admin:action',
+  identifierFn: (req) => req.user?.id ?? req.ip ?? 'unknown',
+});
