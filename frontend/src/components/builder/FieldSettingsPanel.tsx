@@ -76,6 +76,7 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
         <Input
           label="Label"
+          placeholder="e.g. Full Name, Email Address..."
           value={field.label}
           onChange={(e) => updateField(field.id, { label: e.target.value })}
           maxLength={200}
@@ -85,6 +86,7 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
         {isInput && (
           <Input
             label="Placeholder"
+            placeholder="e.g. Enter your answer here..."
             value={field.placeholder ?? ''}
             onChange={(e) => updateField(field.id, { placeholder: e.target.value || null })}
             maxLength={200}
@@ -93,6 +95,7 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
 
         <Textarea
           label="Help text"
+          placeholder="Optional instructions for respondents (e.g. Include country code)"
           value={field.helpText ?? ''}
           onChange={(e) => updateField(field.id, { helpText: e.target.value || null })}
           maxLength={500}

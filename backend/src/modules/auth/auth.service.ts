@@ -51,16 +51,29 @@ async function dispatchEmail(
   job: EmailJobData,
 ): Promise<void> {
   if (isDev) {
-    await sendEmail({
-      to: job.to,
-      subject: job.subject,
-      template: job.template,
-      variables: job.variables,
-    });
-    logger.info(
-      { to: job.to, template: job.template },
-      "Email sent directly in development",
-    );
+    try {
+      await sendEmail({
+        to: job.to,
+        subject: job.subject,
+        template: job.template,
+        variables: job.variables,
+      });
+      logger.info(
+        { to: job.to, template: job.template },
+        "Email sent directly in development",
+      );
+    } catch (err) {
+      logger.error(
+        { err, to: job.to, template: job.template },
+        "Direct email dispatch failed in development (check SMTP credentials)",
+      );
+      if (job.variables && typeof job.variables === 'object') {
+        logger.warn(
+          { variables: job.variables },
+          "DEV EMAIL FALLBACK: Email could not be sent. Variables/OTP printed above for testing.",
+        );
+      }
+    }
     return;
   }
 

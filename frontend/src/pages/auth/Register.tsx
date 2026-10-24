@@ -21,12 +21,20 @@ export function RegisterPage(): JSX.Element {
 
   function validate(): boolean {
     const next: typeof errors = {};
-    if (!name.trim()) next.name = 'Name is required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = 'Enter a valid email';
-    if (password.length < 6) next.password = 'Password must be at least 6 characters';
-    else {
+    if (!name.trim()) next.name = 'Please enter your full name';
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      next.email = 'Please enter your email address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      next.email = 'Please enter a valid email address (e.g. name@example.com)';
+    }
+    if (!password) {
+      next.password = 'Please create a password';
+    } else if (password.length < 8) {
+      next.password = 'Password must be at least 8 characters long';
+    } else {
       const checks = [/[A-Z]/, /[a-z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(password)).length;
-      if (checks < 3) next.password = 'Password must contain 3 of: uppercase, lowercase, digit, symbol';
+      if (checks < 3) next.password = 'Password must contain at least 3 of: uppercase, lowercase, digit, symbol';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -35,14 +43,16 @@ export function RegisterPage(): JSX.Element {
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
     if (!validate()) return;
+    setErrors({});
     setLoading(true);
     try {
-      const { user, accessToken } = await authApi.register(email, password, name);
+      const { user, accessToken } = await authApi.register(email.trim(), password, name.trim());
       setSession(user, accessToken);
-      toast.success('Account created. Check your email for the OTP.');
+      toast.success('Account created! Please check your email for the OTP.');
       navigate(`/verify-email?email=${encodeURIComponent(user.email)}`, { replace: true });
     } catch (err) {
-      setErrors({ form: (err as NormalizedError)?.message ?? 'Registration failed' });
+      const message = (err as NormalizedError)?.message ?? 'Registration failed. Please check your details and try again.';
+      setErrors({ form: message });
     } finally {
       setLoading(false);
     }
@@ -64,8 +74,13 @@ export function RegisterPage(): JSX.Element {
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Input
           label="Full name"
+          placeholder="e.g. Alex Johnson"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+            if (errors.form) setErrors((prev) => ({ ...prev, form: undefined }));
+          }}
           autoComplete="name"
           required
           error={errors.name}
@@ -73,8 +88,13 @@ export function RegisterPage(): JSX.Element {
         <Input
           type="email"
           label="Email"
+          placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+            if (errors.form) setErrors((prev) => ({ ...prev, form: undefined }));
+          }}
           autoComplete="email"
           required
           error={errors.email}
@@ -82,11 +102,16 @@ export function RegisterPage(): JSX.Element {
         <Input
           type={showPassword ? 'text' : 'password'}
           label="Password"
+          placeholder="Create a strong password (min. 8 characters)"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+            if (errors.form) setErrors((prev) => ({ ...prev, form: undefined }));
+          }}
           autoComplete="new-password"
           required
-          helpText="Min 6 chars with 3 of: uppercase, lowercase, digit, symbol"
+          helpText="Min 8 chars with 3 of: uppercase, lowercase, digit, symbol"
           error={errors.password}
           rightElement={
             <button

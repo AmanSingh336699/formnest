@@ -30,6 +30,20 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
     disabled && 'bg-gray-50 cursor-not-allowed',
   );
 
+  function getPlaceholder(): string {
+    if (field.placeholder) return field.placeholder;
+    switch (field.type) {
+      case 'EMAIL':
+        return 'name@example.com';
+      case 'PHONE':
+        return '+1 (555) 000-0000';
+      case 'PASSWORD':
+        return 'Enter password';
+      default:
+        return '';
+    }
+  }
+
   function renderInput(): JSX.Element | null {
     switch (field.type) {
       case 'TEXT_SHORT':
@@ -42,7 +56,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
               id={inputId}
               type={field.type === 'EMAIL' ? 'email' : field.type === 'PHONE' ? 'tel' : field.type === 'PASSWORD' && !passwordVisible ? 'password' : 'text'}
               value={(value as string) ?? ''}
-              placeholder={field.placeholder ?? ''}
+              placeholder={getPlaceholder()}
               onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
               onFocus={onFocus}
               disabled={disabled}
@@ -74,7 +88,7 @@ export function FieldRenderer({ field, value, onChange, onFocus, error, disabled
             id={inputId}
             rows={4}
             value={(value as string) ?? ''}
-            placeholder={field.placeholder ?? ''}
+            placeholder={field.placeholder || 'Type your response here...'}
             onChange={(e) => onChange(e.target.value)}
             onFocus={onFocus}
             disabled={disabled}

@@ -56,8 +56,22 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiEnvelope<unknown>>) => {
     const original = error.config as InternalAxiosRequestConfig & { _retried?: boolean };
     const status = error.response?.status;
-    const code = error.response?.data?.error?.code;
-    const message = error.response?.data?.error?.message ?? error.message;
+    const errData = error.response?.data?.error;
+    const code = errData?.code;
+    let message = errData?.message ?? error.message;
+
+    // Unpack validation field/form errors if present to show the real human message
+    if (errData?.details && typeof errData.details === 'object') {
+      const details = errData.details as { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
+      if (details.formErrors && Array.isArray(details.formErrors) && details.formErrors[0]) {
+        message = details.formErrors[0];
+      } else if (details.fieldErrors && typeof details.fieldErrors === 'object') {
+        const firstFieldList = Object.values(details.fieldErrors).flat();
+        if (firstFieldList.length > 0 && firstFieldList[0]) {
+          message = firstFieldList[0];
+        }
+      }
+    }
 
     // Skip refresh attempts for refresh endpoint itself
     const isRefreshEndpoint = original?.url?.includes('/auth/refresh');
@@ -91,13 +105,13 @@ api.interceptors.response.use(
     }
 
     // Side-effects per status (toast etc) — but pass error through for component handling
-    if (status === 403) toast.error(message || "You don't have permission");
-    else if (status === 409) toast.error(message || 'Conflict');
-    else if (status === 429) toast.error(message || 'Too many requests — slow down a bit');
-    else if (status && status >= 500) toast.error('Something went wrong. Our team has been notified.');
-    else if (!error.response) toast.error('Check your internet connection');
+    if (status === 403) toast.error(message || "You do not have permission to perform this action.");
+    else if (status === 409) toast.error(message || 'A conflict occurred. Please review and try again.');
+    else if (status === 429) toast.error('Too many requests. Please slow down and try again shortly.');
+    else if (status && status >= 500) toast.error('Something went wrong on our end. Please try again later.');
+    else if (!error.response) toast.error('Unable to connect to the server. Please check your internet connection.');
 
-    return Promise.reject({ status, code, message, raw: error });
+    return Promise.reject({ status, code, message, details: errData?.details, raw: error });
   },
 );
 
@@ -105,5 +119,6 @@ export interface NormalizedError {
   status: number | undefined;
   code: string | undefined;
   message: string;
+  details?: unknown;
   raw: unknown;
 }

@@ -24,7 +24,7 @@ export function validateAnswers(fields: FormField[], answers: Record<string, unk
     const value = answers[field.id];
 
     if (field.required && isEmpty(value)) {
-      errors[field.id] = `${field.label} is required`;
+      errors[field.id] = `${field.label} is required.`;
       continue;
     }
     if (isEmpty(value)) continue;
@@ -33,17 +33,17 @@ export function validateAnswers(fields: FormField[], answers: Record<string, unk
 
     if (field.type === 'EMAIL' && typeof value === 'string') {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-        errors[field.id] = v?.customError ?? 'Please enter a valid email address';
+        errors[field.id] = v?.customError ?? 'Please enter a valid email address (e.g. name@example.com)';
       }
     } else if ((field.type === 'TEXT_SHORT' || field.type === 'TEXT_LONG' || field.type === 'PASSWORD') && typeof value === 'string') {
       if (v?.minLength && value.length < v.minLength) {
-        errors[field.id] = v.customError ?? `Minimum ${v.minLength} characters required`;
+        errors[field.id] = v.customError ?? `Please enter at least ${v.minLength} characters`;
       } else if (v?.maxLength && value.length > v.maxLength) {
-        errors[field.id] = v.customError ?? `Maximum ${v.maxLength} characters allowed`;
+        errors[field.id] = v.customError ?? `Please enter no more than ${v.maxLength} characters`;
       } else if (v?.regex) {
         try {
           if (!new RegExp(v.regex).test(value)) {
-            errors[field.id] = v.customError ?? 'Invalid format';
+            errors[field.id] = v.customError ?? 'Please match the requested format';
           }
         } catch {
           // ignore bad regex
@@ -51,11 +51,11 @@ export function validateAnswers(fields: FormField[], answers: Record<string, unk
       }
     } else if (field.type === 'NUMBER' && typeof value === 'number') {
       if (v?.min !== undefined && value < v.min) {
-        errors[field.id] = v.customError ?? `Must be ≥ ${v.min}`;
+        errors[field.id] = v.customError ?? `Value must be at least ${v.min}`;
       } else if (v?.max !== undefined && value > v.max) {
-        errors[field.id] = v.customError ?? `Must be ≤ ${v.max}`;
+        errors[field.id] = v.customError ?? `Value must be at most ${v.max}`;
       } else if (v?.integerOnly && !Number.isInteger(value)) {
-        errors[field.id] = v.customError ?? 'Must be a whole number';
+        errors[field.id] = v.customError ?? 'Please enter a whole number';
       }
     } else if (field.type === 'PHONE' && typeof value === 'string') {
       // Lenient — server does strict validation via libphonenumber
