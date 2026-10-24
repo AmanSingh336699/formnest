@@ -9,7 +9,7 @@ import type { AuthenticatedUser } from '../../middleware/auth.middleware';
 
 function getStripe(): Stripe {
   if (!env.STRIPE_SECRET_KEY) {
-    throw new InternalError('Billing is not configured on this environment');
+    throw new ValidationError('Online billing is currently under process and will be available soon.');
   }
   return new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2024-09-30.acacia' as Stripe.LatestApiVersion });
 }

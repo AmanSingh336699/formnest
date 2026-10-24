@@ -52,6 +52,14 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
 
   const hasChoices = field.type === 'RADIO' || field.type === 'CHECKBOX' || field.type === 'DROPDOWN';
   const isInput = field.type !== 'HEADING' && field.type !== 'DIVIDER';
+  const supportsPlaceholder =
+    field.type === 'TEXT_SHORT' ||
+    field.type === 'TEXT_LONG' ||
+    field.type === 'PASSWORD' ||
+    field.type === 'EMAIL' ||
+    field.type === 'NUMBER' ||
+    field.type === 'PHONE' ||
+    field.type === 'DROPDOWN';
   const supportsDefaultValue = isInput && field.type !== 'CHECKBOX' && field.type !== 'RATING' && field.type !== 'FILE_UPLOAD';
 
   return (
@@ -83,13 +91,30 @@ export function FieldSettingsPanel({ onCloseMobile, isMobileDrawer }: FieldSetti
           required
         />
 
-        {isInput && (
+        {supportsPlaceholder && (
           <Input
             label="Placeholder"
-            placeholder="e.g. Enter your answer here..."
+            placeholder={
+              field.type === 'DROPDOWN'
+                ? 'e.g. Select an option...'
+                : field.type === 'EMAIL'
+                ? 'e.g. name@example.com'
+                : field.type === 'PHONE'
+                ? 'e.g. +1 (555) 000-0000'
+                : field.type === 'NUMBER'
+                ? 'e.g. 0'
+                : field.type === 'TEXT_LONG'
+                ? 'e.g. Type your detailed response here...'
+                : 'e.g. Enter your answer here...'
+            }
             value={field.placeholder ?? ''}
             onChange={(e) => updateField(field.id, { placeholder: e.target.value || null })}
             maxLength={200}
+            helpText={
+              field.type === 'DROPDOWN'
+                ? 'Default prompt shown before an option is selected.'
+                : 'Example hint shown inside the field before the respondent types.'
+            }
           />
         )}
 
@@ -295,11 +320,35 @@ const conditionOperators: Array<{ value: FieldConditionOperator; label: string }
   { value: 'empty', label: 'Is empty' },
 ];
 
-function VisibilityRulesEditor({ field, fields, onUpdate }: VisibilityRulesEditorProps): JSX.Element {
-  const availableFields = fields.filter((f) => f.id !== field.id && f.type !== 'HEADING' && f.type !== 'DIVIDER');
+function VisibilityRulesEditor({ field, fields, onUpdate }: VisibilityRulesEditorProps): JSX.Element | null {
+  // Only preceding fields can be dependencies (a question cannot depend on a future question)
+  const currentIndex = fields.findIndex((f) => f.id === field.id);
+  const precedingFields = currentIndex > 0
+    ? fields.slice(0, currentIndex).filter((f) => f.type !== 'HEADING' && f.type !== 'DIVIDER')
+    : [];
+
+  // If this is the first question in the form, conditional visibility cannot apply
+  if (precedingFields.length === 0) {
+    return null;
+  }
+
   const visibility = field.options?.visibility ?? null;
   const rules = visibility?.rules ?? [];
   const hasRules = rules.length > 0;
+
+  function handleToggle(enabled: boolean): void {
+    if (enabled) {
+      const firstField = precedingFields[0];
+      if (!firstField) return;
+      const defaultValue = firstField.type === 'YES_NO' ? 'true' : '';
+      onUpdate({
+        mode: 'all',
+        rules: [{ fieldId: firstField.id, operator: 'equals', value: defaultValue }],
+      });
+    } else {
+      onUpdate(null);
+    }
+  }
 
   function updateRule(index: number, patch: Partial<FieldVisibilityRule>): void {
     const next = rules.slice();
@@ -310,11 +359,12 @@ function VisibilityRulesEditor({ field, fields, onUpdate }: VisibilityRulesEdito
   }
 
   function addRule(): void {
-    const firstField = availableFields[0];
+    const firstField = precedingFields[0];
     if (!firstField) return;
+    const defaultValue = firstField.type === 'YES_NO' ? 'true' : '';
     onUpdate({
       mode: visibility?.mode ?? 'all',
-      rules: [...rules, { fieldId: firstField.id, operator: 'equals', value: '' }],
+      rules: [...rules, { fieldId: firstField.id, operator: 'equals', value: defaultValue }],
     });
   }
 
@@ -325,72 +375,132 @@ function VisibilityRulesEditor({ field, fields, onUpdate }: VisibilityRulesEdito
   }
 
   return (
-    <div className="space-y-3 rounded-lg bg-gray-50 p-3 dark:bg-slate-800/70">
-      <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Conditional visibility</h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Show this field only when selected conditions match.</p>
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-900/60">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            Conditional Visibility
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Show only when previous answers match
+          </p>
+        </div>
+        <Switch
+          checked={hasRules}
+          onChange={handleToggle}
+        />
       </div>
 
-      {availableFields.length === 0 ? (
-        <p className="text-xs text-gray-500 dark:text-slate-400">Add another input field before configuring conditions.</p>
-      ) : (
-        <>
-          {hasRules && (
+      {hasRules && (
+        <div className="space-y-3 border-t border-slate-200/80 pt-3 dark:border-slate-800">
+          {rules.length > 1 && (
             <Select
-              label="Match"
+              label="Match requirements"
               value={visibility?.mode ?? 'all'}
               onChange={(e) => onUpdate({ mode: e.target.value as 'all' | 'any', rules })}
               options={[
-                { value: 'all', label: 'All conditions' },
-                { value: 'any', label: 'Any condition' },
+                { value: 'all', label: 'All rules must match (AND)' },
+                { value: 'any', label: 'Any rule can match (OR)' },
               ]}
             />
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {rules.map((rule, index) => {
               const selectedOperator = rule.operator;
               const needsValue = selectedOperator !== 'empty' && selectedOperator !== 'notEmpty';
+              const targetField = precedingFields.find((f) => f.id === rule.fieldId);
 
               return (
-                <div key={`${rule.fieldId}-${index}`} className="space-y-2 rounded-md border border-gray-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">
+                <div
+                  key={`${rule.fieldId}-${index}`}
+                  className="space-y-3 rounded-lg border border-slate-200 bg-white p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-800/80">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Rule {rules.length > 1 ? `#${index + 1}` : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeRule(index)}
+                      className="inline-flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-red-500 dark:hover:text-red-400"
+                      title="Remove rule"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span className="text-[11px]">Remove</span>
+                    </button>
+                  </div>
+
                   <Select
-                    label="Field"
+                    label="When question"
                     value={rule.fieldId}
-                    onChange={(e) => updateRule(index, { fieldId: e.target.value })}
-                    options={availableFields.map((f) => ({ value: f.id, label: f.label || f.type.toLowerCase().replace('_', ' ') }))}
+                    onChange={(e) => {
+                      const newField = precedingFields.find((f) => f.id === e.target.value);
+                      const defaultValue = newField?.type === 'YES_NO' ? 'true' : '';
+                      updateRule(index, { fieldId: e.target.value, value: defaultValue });
+                    }}
+                    options={precedingFields.map((f) => ({
+                      value: f.id,
+                      label: f.label || `Untitled (${f.type.toLowerCase().replace('_', ' ')})`,
+                    }))}
                   />
+
                   <Select
                     label="Condition"
                     value={selectedOperator}
                     onChange={(e) => updateRule(index, { operator: e.target.value as FieldConditionOperator, value: '' })}
                     options={conditionOperators}
                   />
+
                   {needsValue && (
-                    <Input
-                      label="Value"
-                      value={rule.value === undefined || rule.value === null ? '' : String(rule.value)}
-                      onChange={(e) => updateRule(index, { value: e.target.value })}
-                      maxLength={200}
-                    />
+                    <>
+                      {targetField?.type === 'YES_NO' ? (
+                        <Select
+                          label="Value"
+                          value={rule.value === true || rule.value === 'true' ? 'true' : rule.value === false || rule.value === 'false' ? 'false' : 'true'}
+                          onChange={(e) => updateRule(index, { value: e.target.value })}
+                          options={[
+                            { value: 'true', label: 'Yes' },
+                            { value: 'false', label: 'No' },
+                          ]}
+                        />
+                      ) : targetField?.type === 'RADIO' || targetField?.type === 'DROPDOWN' ? (
+                        <Select
+                          label="Value"
+                          value={String(rule.value ?? '')}
+                          onChange={(e) => updateRule(index, { value: e.target.value })}
+                          options={[
+                            { value: '', label: 'Select option...' },
+                            ...(targetField.options?.choices ?? []).map((c) => ({ value: c.value, label: c.label })),
+                          ]}
+                        />
+                      ) : (
+                        <Input
+                          label="Value"
+                          placeholder="e.g. Expected answer..."
+                          value={rule.value === undefined || rule.value === null ? '' : String(rule.value)}
+                          onChange={(e) => updateRule(index, { value: e.target.value })}
+                          maxLength={200}
+                        />
+                      )}
+                    </>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => removeRule(index)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Remove condition
-                  </button>
                 </div>
               );
             })}
           </div>
 
-          <Button type="button" variant="outline" size="sm" fullWidth leftIcon={<Plus className="h-4 w-4" />} onClick={addRule}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            fullWidth
+            leftIcon={<Plus className="h-4 w-4" />}
+            onClick={addRule}
+          >
             Add condition
           </Button>
-        </>
+        </div>
       )}
     </div>
   );

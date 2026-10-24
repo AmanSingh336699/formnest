@@ -436,7 +436,7 @@ export const authService = {
       to: email,
       subject: "Your FormNest verification code",
       template: "verifyEmail",
-      variables: { name, verificationOtp, expiresIn: "24 hours" },
+      variables: { name, verificationOtp, expiresIn: "30 minutes" },
     });
     logger.info({ userId }, "Verification email dispatched");
   },
