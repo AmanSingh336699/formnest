@@ -1,15 +1,32 @@
-import DOMPurify from 'isomorphic-dompurify';
+/**
+ * Lightweight server-side sanitization helpers.
+ * No JSDOM / browser dependency — safe for Node 20 on Render free tier.
+ */
 
-const ALLOWED_TAGS = ['b', 'i', 'em', 'strong', 'u', 'a', 'p', 'br', 'ul', 'ol', 'li', 'span'];
-const ALLOWED_ATTR = ['href', 'target', 'rel'];
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
 
-export function sanitizeHtml(input: string): string {
-  return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
-    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
-  });
+/**
+ * Escapes HTML special characters to prevent XSS.
+ * Use this instead of full DOM-based sanitisation where rich-HTML is not needed.
+ */
+export function escapeHtml(input: string): string {
+  return input.replace(/[&<>"']/g, (ch) => HTML_ESCAPE_MAP[ch] ?? ch);
+}
+
+/**
+ * Strip all HTML tags from a string, leaving only text content.
+ */
+export function stripHtmlTags(input: string): string {
+  return input
+    .replace(/<[^>]*>/g, '') // remove all HTML tags
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
 }
 
 export function sanitizePlainText(input: string, maxLength = 10000): string {
