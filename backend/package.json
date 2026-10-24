@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:worker": "tsx watch src/worker.ts",
-    "prebuild": "npm install --include=dev",
-    "build": "tsc -p tsconfig.json",
+    "build": "node --max-old-space-size=450 ./node_modules/typescript/bin/tsc -p tsconfig.json",
     "start": "node dist/src/server.js",
     "start:worker": "node dist/src/worker.js",
     "lint": "eslint . --ext .ts",
@@ -64,7 +63,7 @@
     "typescript": "^5.6.2"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
   "overrides": {
     "drizzle-kit": {
